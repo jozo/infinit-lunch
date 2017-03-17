@@ -71,7 +71,7 @@ def hello():
         ])
         return 'Done '
     else:
-        return 'Come on Monday-Friday' + SLACK_HOOK
+        return 'Come on Monday-Friday'
 
 if __name__ == '__main__':
     app.run()
