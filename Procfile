@@ -1,0 +1,1 @@
+web: python infinit_lunch.py
