@@ -69,7 +69,7 @@ def hello():
             {'restaurant': 'Bednar', 'menu': scrap_bednar()},
             {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova()},
         ])
-        return 'Done'
+        return 'Done ' + SLACK_HOOK
     else:
         return 'Come on Monday-Friday'
 
