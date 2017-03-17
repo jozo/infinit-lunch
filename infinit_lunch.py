@@ -69,9 +69,9 @@ def hello():
             {'restaurant': 'Bednar', 'menu': scrap_bednar()},
             {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova()},
         ])
-        return 'Done ' + SLACK_HOOK
+        return 'Done '
     else:
-        return 'Come on Monday-Friday'
+        return 'Come on Monday-Friday' + SLACK_HOOK
 
 if __name__ == '__main__':
     app.run()
