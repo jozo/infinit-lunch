@@ -1,1 +1,1 @@
-web: python infinit_lunch.py
+web: gunicorn infinit_lunch:app --log-file=-
