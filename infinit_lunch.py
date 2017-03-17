@@ -1,10 +1,15 @@
+import os
 import json
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
+from flask import Flask
 
 
-SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+# SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
+
+app = Flask(__name__)
 
 
 def scrap_dreams():
@@ -51,14 +56,22 @@ def send_to_slack(items):
     for item in items:
         message += '\n\n*{}*\n'.format(item['restaurant'])
         message += '\n'.join(item['menu'])
-    print(message)
-    requests.post(SLACK_HOOK, data=json.dumps({'text': message}))
+    if SLACK_HOOK:
+        requests.post(SLACK_HOOK, data=json.dumps({'text': message}))
 
+
+@app.route("/")
+def hello():
+    if datetime.today().weekday() in range(0, 5):
+        send_to_slack([
+            {'restaurant': 'Dream\'s', 'menu': scrap_dreams()},
+            {'restaurant': 'Breweria', 'menu': scrap_breweria()},
+            {'restaurant': 'Bednar', 'menu': scrap_bednar()},
+            {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova()},
+        ])
+        return 'Done'
+    else:
+        return 'Come on Monday-Friday'
 
 if __name__ == '__main__':
-    send_to_slack([
-        {'restaurant': 'Dream\'s', 'menu': scrap_dreams()},
-        {'restaurant': 'Breweria', 'menu': scrap_breweria()},
-        {'restaurant': 'Bednar', 'menu': scrap_bednar()},
-        {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova()},
-    ])
+    app.run()
