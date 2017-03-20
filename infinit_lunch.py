@@ -5,73 +5,79 @@ import requests
 from bs4 import BeautifulSoup
 from flask import Flask
 
-
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
+SECRET_KEY = os.environ.get('SECRET_KEY', None)
 
 app = Flask(__name__)
 
 
-def scrap_dreams():
-    r = requests.get('http://www.dreams-res.sk/menu/daily_menu_sk.php')
-    if r.ok:
-        soup = BeautifulSoup(r.content, 'html.parser')
-        elements = soup.find_all('td', id='jedlo')
-        return [el.text for el in elements]
-    return []
+def check_for_errors(func):
+    def func_wrapper(url):
+        try:
+            r = requests.get(url)
+            if r.ok:
+                soup = BeautifulSoup(r.content, 'html.parser')
+                day = datetime.today().weekday()
+                return func(soup, day)
+        except IndexError:
+            return ['Scrapping problem. Fix it: https://github.com/fadawar/infinit-lunch']
+        return ['Problem with request']
+    return func_wrapper
 
 
-def scrap_breweria():
-    r = requests.get('http://breweria.sk/slimak/menu/denne-menu/')
-    if r.ok:
-        soup = BeautifulSoup(r.content, 'html.parser')
-        day = datetime.today().weekday()
-        elements = soup.select('.tabs__pane')[day].select('.desc__content')
-        return [el.text for el in elements if len(el.text) > 1]
-    return []
+@check_for_errors
+def scrap_dreams(soup, day):
+    elements = soup.find_all('td', id='jedlo')
+    return [el.text for el in elements]
 
 
-def scrap_bednar():
-    r = requests.get('http://bednarrestaurant.sk/new/wordpress/?page_id=62')
-    if r.ok:
-        day = datetime.today().weekday()
-        soup = BeautifulSoup(r.content, 'html.parser')
-        e = [i for i in soup.select('.post-body p') if i.text.strip()]
-        return [i.text for i in e[day].select('span') if i.text.strip()]
-    return []
+@check_for_errors
+def scrap_breweria(soup, day):
+    elements = soup.select('.tabs__pane')[day].select('.desc__content')
+    return [el.text for el in elements if len(el.text) > 1]
 
 
-def scrap_jarosova():
-    r = requests.get('http://vasestravovanie.sk/jedalny-listok-jar/')
-    if r.ok:
-        day = datetime.today().weekday()
-        soup = BeautifulSoup(r.content, 'html.parser')
-        a = soup.select('table tbody tr')[9*day:9*day+9]
-        return [i.select('span')[2].text for i in a[0:3]] + [i.select('span')[1].text for i in a[3:]]
-    return []
+@check_for_errors
+def scrap_bednar(soup, day):
+    els = [i for i in soup.select('.post-body div:nth-of-type(4)')[0].text.split('\n') if i.strip()]
+    return els[day * 6:(day + 1) * 6]
 
 
-def send_to_slack(items):
+@check_for_errors
+def scrap_jarosova(soup, day):
+    els = soup.select('table tbody tr')[9 * day:9 * day + 9]
+    return [i.select('span')[2].text for i in els[0:3]] + [i.select('span')[1].text for i in els[3:]]
+
+
+def send_to_slack(message, secret_key):
+    if SLACK_HOOK and secret_key == SECRET_KEY:
+        requests.post(SLACK_HOOK, data=json.dumps({'text': message}))
+
+
+def create_message(items):
     message = '*MENU {}*\n'.format(datetime.today())
     for item in items:
         message += '\n\n*{}*\n'.format(item['restaurant'])
         message += '\n'.join(item['menu'])
-    if SLACK_HOOK:
-        requests.post(SLACK_HOOK, data=json.dumps({'text': message}))
+    return message
 
 
-@app.route("/")
-def hello():
+@app.route('/', defaults={'secret_key': 'wrong key :('})
+@app.route('/<secret_key>')
+def hello(secret_key):
     if datetime.today().weekday() in range(0, 5):
-        send_to_slack([
-            {'restaurant': 'Dream\'s', 'menu': scrap_dreams()},
-            {'restaurant': 'Breweria', 'menu': scrap_breweria()},
-            {'restaurant': 'Bednar', 'menu': scrap_bednar()},
-            {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova()},
+        msg = create_message([
+            {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
+            {'restaurant': 'Breweria', 'menu': scrap_breweria('http://breweria.sk/slimak/menu/denne-menu/')},
+            {'restaurant': 'Bednar', 'menu': scrap_bednar('http://bednarrestaurant.sk/new/wordpress/?page_id=62')},
+            {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova('http://vasestravovanie.sk/jedalny-listok-jar/')},
         ])
-        return 'Done '
+        send_to_slack(msg, secret_key)
+        return '<pre>{}</pre>'.format(msg)
     else:
         return 'Come on Monday-Friday'
+
 
 if __name__ == '__main__':
     app.run()
