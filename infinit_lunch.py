@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
@@ -40,8 +41,8 @@ def scrap_breweria(soup, day):
 
 @check_for_errors
 def scrap_bednar(soup, day):
-    els = [i for i in soup.select('.post-body div:nth-of-type(4)')[0].text.split('\n') if i.strip()]
-    return els[day * 6:(day + 1) * 6]
+    groups = re.search(r'PONDELOK(.*)UTOROK(.*)STREDA(.*)ŠTVRTOK(.*)PIATOK(.*)BEDNAR', soup.text, re.DOTALL).groups()
+    return [i for i in groups[day].split('\n') if i]
 
 
 @check_for_errors
