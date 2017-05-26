@@ -23,6 +23,8 @@ def check_for_errors(func):
                 return func(soup, day)
         except IndexError:
             return ['Scrapping problem. Fix it: https://github.com/fadawar/infinit-lunch']
+        except Exception:
+            return ['Unknown error']
         return ['Problem with request']
     return func_wrapper
 
