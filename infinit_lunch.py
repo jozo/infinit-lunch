@@ -9,6 +9,8 @@ from flask import Flask
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
 SECRET_KEY = os.environ.get('SECRET_KEY', None)
+FB_APP_ID = os.environ.get('FB_APP_ID', None)
+FB_APP_SECRET = os.environ.get('FB_APP_SECRET', None)
 
 app = Flask(__name__)
 
@@ -53,6 +55,37 @@ def scrap_jarosova(soup, day):
     return [i.select('span')[2].text for i in els[0:3]] + [i.select('span')[1].text for i in els[3:]]
 
 
+@check_for_errors
+def scrap_gastrohouse(soup, day):
+    els = soup.select('.td-main-page-wrap')[0].select('ul')[-1].select('li')
+    return [i.text for i in els]
+
+
+def scrap_don_quijote():
+    try:
+        r = requests.get('https://graph.facebook.com/oauth/access_token?grant_type=client_credentials'
+                         '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET))
+        j = json.loads(r.text)      # access token
+        r = requests.get('https://graph.facebook.com/1540992416123114/feed', params=j)
+        j = json.loads(r.text)
+        data = j['data'][0]['message'].split('\n')[5:-3]
+        day = datetime.today().weekday()
+        day_in_cycle = 0
+        results = []
+        skip = False
+        for line in data:
+            if line == '':
+                day_in_cycle += 1
+                skip = True     # next line is the name of the day
+            elif skip:
+                skip = False    # skip line
+            elif day == day_in_cycle:
+                results.append(line)
+        return results
+    except Exception:
+        return ['Unknown error']
+
+
 def send_to_slack(message, secret_key):
     if SLACK_HOOK and secret_key == SECRET_KEY:
         requests.post(SLACK_HOOK, data=json.dumps({'text': message}))
@@ -69,12 +102,14 @@ def create_message(items):
 @app.route('/', defaults={'secret_key': 'wrong key :('})
 @app.route('/<secret_key>')
 def hello(secret_key):
-    if datetime.today().weekday() in range(0, 5):
+    if datetime.today().weekday() in range(0, 6):
         msg = create_message([
             {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
             {'restaurant': 'Breweria', 'menu': scrap_breweria('http://breweria.sk/slimak/menu/denne-menu/')},
             {'restaurant': 'Bednar', 'menu': scrap_bednar('http://bednarrestaurant.sk/new/wordpress/?page_id=62')},
             {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova('http://vasestravovanie.sk/jedalny-listok-jar/')},
+            {'restaurant': 'Gastrohouse (vyvarovna Slimak)', 'menu': scrap_gastrohouse('http://gastrohouse.sk')},
+            {'restaurant': 'Don Quijote', 'menu': scrap_don_quijote()},
         ])
         send_to_slack(msg, secret_key)
         return '<pre>{}</pre>'.format(msg)
@@ -83,4 +118,4 @@ def hello(secret_key):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
