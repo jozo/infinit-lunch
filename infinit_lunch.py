@@ -74,7 +74,7 @@ def scrap_don_quijote():
         results = []
         skip = False
         for line in data:
-            if line == '':
+            if line.strip() == '':
                 day_in_cycle += 1
                 skip = True     # next line is the name of the day
             elif skip:
