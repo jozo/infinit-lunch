@@ -5,12 +5,14 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask
+import time
 
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
 SECRET_KEY = os.environ.get('SECRET_KEY', None)
 FB_APP_ID = os.environ.get('FB_APP_ID', None)
 FB_APP_SECRET = os.environ.get('FB_APP_SECRET', None)
+DEBUG = bool(os.environ.get('DEBUG', False))
 
 app = Flask(__name__)
 
@@ -103,6 +105,7 @@ def create_message(items):
 @app.route('/<secret_key>')
 def hello(secret_key):
     if datetime.today().weekday() in range(0, 6):
+        t1 = time.time()
         msg = create_message([
             {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
             {'restaurant': 'Breweria', 'menu': scrap_breweria('http://breweria.sk/slimak/menu/denne-menu/')},
@@ -111,6 +114,8 @@ def hello(secret_key):
             {'restaurant': 'Gastrohouse (vyvarovna Slimak)', 'menu': scrap_gastrohouse('http://gastrohouse.sk')},
             {'restaurant': 'Don Quijote', 'menu': scrap_don_quijote()},
         ])
+        t2 = time.time()
+        print('Time:', t2-t1)
         send_to_slack(msg, secret_key)
         return '<pre>{}</pre>'.format(msg)
     else:
@@ -118,4 +123,4 @@ def hello(secret_key):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=DEBUG)
