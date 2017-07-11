@@ -107,12 +107,12 @@ def hello(secret_key):
     if datetime.today().weekday() in range(0, 6):
         t1 = time.time()
         msg = create_message([
-            # {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
-            # {'restaurant': 'Breweria', 'menu': scrap_breweria('http://breweria.sk/slimak/menu/denne-menu/')},
-            # {'restaurant': 'Bednar', 'menu': scrap_bednar('http://bednarrestaurant.sk/new/wordpress/?page_id=62')},
+            {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
+            {'restaurant': 'Breweria', 'menu': scrap_breweria('http://breweria.sk/slimak/menu/denne-menu/')},
+            {'restaurant': 'Bednar', 'menu': scrap_bednar('http://bednarrestaurant.sk/new/wordpress/?page_id=62')},
             {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova('http://vasestravovanie.sk/jedalny-listok-jar/')},
-            # {'restaurant': 'Gastrohouse (vyvarovna Slimak)', 'menu': scrap_gastrohouse('http://gastrohouse.sk')},
-            # {'restaurant': 'Don Quijote', 'menu': scrap_don_quijote()},
+            {'restaurant': 'Gastrohouse (vyvarovna Slimak)', 'menu': scrap_gastrohouse('http://gastrohouse.sk')},
+            {'restaurant': 'Don Quijote', 'menu': scrap_don_quijote()},
         ])
         t2 = time.time()
         print('Time:', t2-t1)
