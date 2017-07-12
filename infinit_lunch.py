@@ -90,7 +90,8 @@ def scrap_don_quijote():
 
 def send_to_slack(message, secret_key):
     if SLACK_HOOK and secret_key == SECRET_KEY:
-        requests.post(SLACK_HOOK, data=json.dumps({'text': message}))
+        for line in message.split('\n'):
+            requests.post(SLACK_HOOK, data=json.dumps({'text': line}))
 
 
 def create_message(items):
