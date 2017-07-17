@@ -88,24 +88,25 @@ def scrap_don_quijote():
         return ['Unknown error']
 
 
-def send_to_slack(message, secret_key):
+def send_to_slack(messages, secret_key):
     if SLACK_HOOK and secret_key == SECRET_KEY:
-        for line in message.split('\n'):
-            requests.post(SLACK_HOOK, data=json.dumps({'text': line}))
+        for msg in messages:
+            requests.post(SLACK_HOOK, data=json.dumps({'text': msg}))
 
 
 def create_message(items):
-    message = '*MENU {}*\n'.format(datetime.today())
+    messages = ['*MENU {}*\n'.format(datetime.today())]
     for item in items:
-        message += '\n\n*{}*\n'.format(item['restaurant'])
-        message += '\n'.join(item['menu'])
-    return message
+        msg = '\n\n*{}*\n'.format(item['restaurant'])
+        msg += '\n'.join(item['menu'])
+        messages.append(msg)
+    return messages
 
 
 @app.route('/', defaults={'secret_key': 'wrong key :('})
 @app.route('/<secret_key>')
 def hello(secret_key):
-    if datetime.today().weekday() in range(0, 6):
+    if datetime.today().weekday() in range(0, 5):
         t1 = time.time()
         msg = create_message([
             {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
@@ -118,7 +119,7 @@ def hello(secret_key):
         t2 = time.time()
         print('Time:', t2-t1)
         send_to_slack(msg, secret_key)
-        return '<pre>{}</pre>'.format(msg)
+        return '<pre>{}</pre>'.format('\n'.join(msg))
     else:
         return 'Come on Monday-Friday'
 
