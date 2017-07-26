@@ -53,8 +53,14 @@ def scrap_bednar(soup, day):
 
 @check_for_errors
 def scrap_jarosova(soup, day):
-    els = soup.select('table tbody tr')[9 * day:9 * day + 9]
-    return [i.select('span')[3].text for i in els[0:3]] + [i.select('span')[3].text for i in els[3:]]
+    tables = soup.select('table')
+    date_rows = [table.select('tbody tr')[1::10] for table in tables]
+    dates = [i.select('span')[0].text for i in date_rows[0] + date_rows[1]]
+    day_index = dates.index(datetime.today().strftime('%d.%m.%Y'))
+    table = tables[0] if day_index < 5 else tables[1]
+    offset = day_index % 5
+    els = table.select('tbody tr')[10 * offset:10 * offset + 9]
+    return [i.select('span')[2].text if idx == 1 else i.select('span')[3].text for idx, i in enumerate(els)]
 
 
 @check_for_errors
