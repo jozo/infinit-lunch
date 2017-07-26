@@ -88,6 +88,11 @@ def scrap_don_quijote():
         return ['Unknown error']
 
 
+def get_other_restaurants():
+    return ['Panda :panda_face:\nCigipanda :man::skin-tone-5:\nPunjabi Dhaba :man_with_turban:\nCasa Inka :dancer:\n'
+            'Freshmarket :watermelon:']
+
+
 def send_to_slack(messages, secret_key):
     if SLACK_HOOK and secret_key == SECRET_KEY:
         for msg in messages:
@@ -115,6 +120,7 @@ def hello(secret_key):
             {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova('http://vasestravovanie.sk/jedalny-listok-jar/')},
             {'restaurant': 'Gastrohouse (vyvarovna Slimak)', 'menu': scrap_gastrohouse('http://gastrohouse.sk')},
             {'restaurant': 'Don Quijote', 'menu': scrap_don_quijote()},
+            {'restaurant': 'Ine (hlasuj pomocou emoji)', 'menu': get_other_restaurants()},
         ])
         t2 = time.time()
         print('Time:', t2-t1)
