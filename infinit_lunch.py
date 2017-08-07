@@ -112,10 +112,17 @@ def create_message(items):
     return messages
 
 
+def is_work_day():
+    return datetime.today().weekday() in range(0, 5)
+
+
 @app.route('/', defaults={'secret_key': 'wrong key :('})
 @app.route('/<secret_key>')
 def hello(secret_key):
-    if datetime.today().weekday() in range(0, 5):
+    # Vytvori sa zoznam restauracii
+    # ziskaju sa z nich menu v podobe SlackMessage
+    # Odosle sa sprava do Slacku ak bude spravny secret a bude weekday
+    if is_work_day():
         t1 = time.time()
         msg = create_message([
             {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},

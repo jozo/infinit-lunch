@@ -7,10 +7,13 @@
 appdirs==1.4.3
 appnope==0.1.0            # via ipython
 beautifulsoup4==4.6.0
+certifi==2017.7.27.1      # via requests
+chardet==3.0.4            # via requests
 click==6.7                # via flask
 decorator==4.1.2          # via ipython, traitlets
 flask==0.12.2
 gunicorn==19.7.1
+idna==2.5                 # via requests
 ipython-genutils==0.2.0   # via traitlets
 ipython==6.1.0
 itsdangerous==0.24        # via flask
@@ -24,8 +27,10 @@ ptyprocess==0.5.2         # via pexpect
 py==1.4.34                # via pytest
 pygments==2.2.0           # via ipython
 pytest==3.2.0
+requests==2.18.3
 simplegeneric==0.8.1      # via ipython
 six==1.10.0
 traitlets==4.3.2          # via ipython
+urllib3==1.22             # via requests
 wcwidth==0.1.7            # via prompt-toolkit
 werkzeug==0.12.2          # via flask
