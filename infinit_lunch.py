@@ -74,21 +74,13 @@ def scrap_don_quijote():
         j = json.loads(r.text)      # access token
         r = requests.get('https://graph.facebook.com/1540992416123114/feed', params=j)
         j = json.loads(r.text)
-        data = j['data'][0]['message'].split('\n')[5:-3]
+        data = j['data'][0]['message']
+        all_days = re.search(r'Pondelok:\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
+                             data,
+                             re.DOTALL | re.MULTILINE).groups()
         day = datetime.today().weekday()
-        day_in_cycle = 0
-        results = []
-        skip = False
-        for line in data:
-            if line.strip() == '':
-                day_in_cycle += 1
-                skip = True     # next line is the name of the day
-            elif skip:
-                skip = False    # skip line
-            elif day == day_in_cycle:
-                results.append(line)
-        return results
-    except Exception:
+        return re.findall(r'\w\s(.*) \(.*\)\s*', all_days[day])
+    except Exception as e:
         return ['Unknown error']
 
 

@@ -54,7 +54,7 @@ class DonQuijoteRestaurant(Restaurant):
         return menu
 
     def _parse_all_days(self):
-        return re.search(r'Pondelok:\n(.*)Utorok:\n(.*)Streda:\n(.*)Štvrtok:\n(.*)Piatok:\n(.*)^\s*$',
+        return re.search(r'Pondelok:\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
                          self.content,
                          re.DOTALL | re.MULTILINE).groups()
 
