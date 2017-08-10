@@ -6,8 +6,11 @@ import requests
 from bs4 import BeautifulSoup
 from flask import Flask
 import time
+import restaurants
 
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+from slack import Channel
+
 SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
 SECRET_KEY = os.environ.get('SECRET_KEY', None)
 FB_APP_ID = os.environ.get('FB_APP_ID', None)
@@ -108,27 +111,35 @@ def is_work_day():
     return datetime.today().weekday() in range(0, 5)
 
 
+def retrieve_menus():
+    return [
+        restaurants.DonQuijoteRestaurant().retrieve_menu(),
+    ]
+
+
+def should_send_to_slack(secret_key):
+    return SLACK_HOOK and secret_key == SECRET_KEY
+
+
 @app.route('/', defaults={'secret_key': 'wrong key :('})
 @app.route('/<secret_key>')
 def hello(secret_key):
-    # Vytvori sa zoznam restauracii
-    # ziskaju sa z nich menu v podobe SlackMessage
-    # Odosle sa sprava do Slacku ak bude spravny secret a bude weekday
     if is_work_day():
-        t1 = time.time()
-        msg = create_message([
-            {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
-            {'restaurant': 'Breweria', 'menu': scrap_breweria('http://breweria.sk/slimak/menu/denne-menu/')},
-            {'restaurant': 'Bednar', 'menu': scrap_bednar('http://bednarrestaurant.sk/new/wordpress/?page_id=62')},
-            {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova('http://vasestravovanie.sk/jedalny-listok-jar/')},
-            {'restaurant': 'Gastrohouse (vyvarovna Slimak)', 'menu': scrap_gastrohouse('http://gastrohouse.sk')},
-            {'restaurant': 'Don Quijote', 'menu': scrap_don_quijote()},
-            {'restaurant': 'Ine (hlasuj pomocou emoji)', 'menu': get_other_restaurants()},
-        ])
-        t2 = time.time()
-        print('Time:', t2-t1)
-        send_to_slack(msg, secret_key)
-        return '<pre>{}</pre>'.format('\n'.join(msg))
+        menus = restaurants.FormattedMenus(retrieve_menus())
+        if should_send_to_slack(secret_key):
+            Channel(SLACK_HOOK, requests).send(menus)
+
+        # msg = create_message([
+        #     {'restaurant': 'Dream\'s', 'menu': scrap_dreams('http://www.dreams-res.sk/menu/daily_menu_sk.php')},
+        #     {'restaurant': 'Breweria', 'menu': scrap_breweria('http://breweria.sk/slimak/menu/denne-menu/')},
+        #     {'restaurant': 'Bednar', 'menu': scrap_bednar('http://bednarrestaurant.sk/new/wordpress/?page_id=62')},
+        #     {'restaurant': 'Jedalen Jarosova', 'menu': scrap_jarosova('http://vasestravovanie.sk/jedalny-listok-jar/')},
+        #     {'restaurant': 'Gastrohouse (vyvarovna Slimak)', 'menu': scrap_gastrohouse('http://gastrohouse.sk')},
+        #     {'restaurant': 'Don Quijote', 'menu': scrap_don_quijote()},
+        #     {'restaurant': 'Ine (hlasuj pomocou emoji)', 'menu': get_other_restaurants()},
+        # ])
+        # send_to_slack(msg, secret_key)
+        return '<pre>{}</pre>'.format(menus)
     else:
         return 'Come on Monday-Friday'
 

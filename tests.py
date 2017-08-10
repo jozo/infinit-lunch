@@ -1,18 +1,78 @@
-from restaurants import DonQuijoteRestaurant
+from datetime import datetime
+from unittest.mock import Mock, call
+
+from restaurants import DonQuijoteRestaurant, Menu, FormattedMenus
+from slack import Channel
 
 
-class TestDonQuijoteRestaurantTest:
+class TestDonQuijoteRestaurant:
     def setup(self):
-        self.rest = DonQuijoteRestaurant()
-        self.rest.content = DON_FB_MESSAGE
+        self.restaurant = DonQuijoteRestaurant()
+        self.restaurant.content = DON_FB_MESSAGE
 
     def test_can_find_monday_menu(self):
-        menu = self.rest.parse_menu(day=0)
+        menu = self.restaurant.parse_menu(day=0)
         assert menu.foods == ['Letná minestrone',
                               'Medovo-horčicové kuracie prsia so špargľou a hruškami, bylinková ryža',
                               'Penne so špenátom a gorgonzolou']
 
 
+class TestChannel:
+    def test_send_provided_messages(self):
+        http = Mock()
+        url = 'http://url'
+        ch = Channel(url, http)
+        ch.send(['first message', 'second message'])
+
+        assert http.post.call_count == 2
+        assert http.post.call_args_list == [call(url, data='{"text": "first message"}'),
+                                            call(url, data='{"text": "second message"}')]
+
+
+class TestMenu:
+    def test_string_representation(self):
+        m = Menu('Restaurant A')
+        m.add_item('Food 1', 4.5)
+        m.add_item('Food 2')
+
+        assert str(m) == MENU_1
+
+
+class TestFormattedMenus:
+    def test_will_format_messages(self):
+        menus = [
+            Menu('Restaurant A'),
+            Menu('Restaurant B'),
+        ]
+        menus[0].add_item('Food 1')
+        menus[0].add_item('Food 2', 4.5)
+        menus[1].add_item('Food 3')
+        formatted_menus = FormattedMenus(menus, today=datetime(2017, 8, 10))
+
+        assert len(formatted_menus) == 2
+        assert str(formatted_menus[0]) == FORMATTED_MENU_1
+        assert str(formatted_menus) == FORMATTED_MENU_2
+
+
+MENU_1 = """*Restaurant A*
+1. Food 1 (4.5€)
+2. Food 2"""
+
+
+FORMATTED_MENU_1 = """*Obedy v štvrtok 10.08.2017*
+
+*Restaurant A*
+1. Food 1
+2. Food 2 (4.5€)"""
+
+FORMATTED_MENU_2 = """*Obedy v štvrtok 10.08.2017*
+
+*Restaurant A*
+1. Food 1
+2. Food 2 (4.5€)
+
+*Restaurant B*
+1. Food 3"""
 
 DON_FB_MESSAGE = """Dobre ranko vsetkym priatelom a znamym prajeme:)
 
