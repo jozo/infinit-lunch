@@ -7,9 +7,11 @@
 appdirs==1.4.3
 appnope==0.1.0            # via ipython
 beautifulsoup4==4.6.0
+blinker==1.4              # via raven
 certifi==2017.7.27.1      # via requests
 chardet==3.0.4            # via requests
 click==6.7                # via flask
+contextlib2==0.5.5        # via raven
 decorator==4.1.2          # via ipython, traitlets
 flask==0.12.2
 gunicorn==19.7.1
@@ -27,6 +29,7 @@ ptyprocess==0.5.2         # via pexpect
 py==1.4.34                # via pytest
 pygments==2.2.0           # via ipython
 pytest==3.2.0
+raven[flask]==6.1.0
 requests==2.18.3
 simplegeneric==0.8.1      # via ipython
 six==1.10.0

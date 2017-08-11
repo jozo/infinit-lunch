@@ -3,6 +3,7 @@ from datetime import datetime
 
 import requests
 from flask import Flask
+from raven.contrib.flask import Sentry
 
 import restaurants
 from slack import Channel
@@ -13,6 +14,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', None)
 DEBUG = bool(os.environ.get('DEBUG', False))
 
 app = Flask(__name__)
+sentry = Sentry(app)    # do not forget to set SENTRY_DSN
 
 
 def is_work_day():
