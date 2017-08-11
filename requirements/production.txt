@@ -4,6 +4,7 @@
 #
 #    pip-compile --output-file requirements/production.txt requirements/production.in
 #
+appdirs==1.4.3
 beautifulsoup4==4.6.0
 blinker==1.4              # via raven
 certifi==2017.7.27.1      # via requests
