@@ -22,12 +22,14 @@ itsdangerous==0.24        # via flask
 jedi==0.10.2              # via ipython
 jinja2==2.9.6             # via flask
 markupsafe==1.0           # via jinja2
+packaging==16.8
 pexpect==4.2.1            # via ipython
 pickleshare==0.7.4        # via ipython
 prompt-toolkit==1.0.15    # via ipython
 ptyprocess==0.5.2         # via pexpect
 py==1.4.34                # via pytest
 pygments==2.2.0           # via ipython
+pyparsing==2.2.0          # via packaging
 pytest==3.2.0
 raven[flask]==6.1.0
 requests==2.18.3

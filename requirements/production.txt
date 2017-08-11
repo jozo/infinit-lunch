@@ -16,6 +16,8 @@ idna==2.5                 # via requests
 itsdangerous==0.24        # via flask
 jinja2==2.9.6             # via flask
 markupsafe==1.0           # via jinja2
+packaging==16.8
+pyparsing==2.2.0          # via packaging
 raven[flask]==6.1.0
 requests==2.18.3
 six==1.10.0

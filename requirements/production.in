@@ -4,3 +4,4 @@ gunicorn>=19,<20
 requests>=2,<3
 raven[flask]>=6,<7
 six
+packaging
