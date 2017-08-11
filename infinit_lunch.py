@@ -55,36 +55,9 @@ def scrap_bednar(soup, day):
 
 
 @check_for_errors
-def scrap_jarosova(soup, day):
-    table = soup.find('table')
-    date_rows = table.select('tbody tr')[1::10]
-    dates = [i.select('span')[0].text for i in date_rows]
-    day_index = dates.index(datetime.today().strftime('%d.%m.%Y'))
-    els = table.select('tbody tr')[10 * day_index:10 * day_index + 9]
-    return [i.select('span')[2].text if idx == 1 else i.select('span')[3].text for idx, i in enumerate(els)]
-
-
-@check_for_errors
 def scrap_gastrohouse(soup, day):
     els = soup.select('.td-main-page-wrap')[0].select('ul')[-1].select('li')
     return [i.text for i in els]
-
-
-def scrap_don_quijote():
-    try:
-        r = requests.get('https://graph.facebook.com/oauth/access_token?grant_type=client_credentials'
-                         '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET))
-        j = json.loads(r.text)      # access token
-        r = requests.get('https://graph.facebook.com/1540992416123114/feed', params=j)
-        j = json.loads(r.text)
-        data = j['data'][0]['message']
-        all_days = re.search(r'Pondelok:\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
-                             data,
-                             re.DOTALL | re.MULTILINE).groups()
-        day = datetime.today().weekday()
-        return re.findall(r'\w\s(.*) \(.*\)\s*', all_days[day])
-    except Exception as e:
-        return ['Unknown error']
 
 
 def get_other_restaurants():
@@ -114,6 +87,7 @@ def is_work_day():
 def retrieve_menus():
     return [
         restaurants.DonQuijoteRestaurant().retrieve_menu(),
+        restaurants.JarosovaRestaurant().retrieve_menu(),
     ]
 
 

@@ -5,6 +5,7 @@ import abc
 from datetime import datetime
 
 import requests
+from bs4 import BeautifulSoup
 
 FB_APP_ID = os.environ.get('FB_APP_ID', None)
 FB_APP_SECRET = os.environ.get('FB_APP_SECRET', None)
@@ -124,3 +125,28 @@ class DonQuijoteRestaurant(Restaurant):
 
     def _parse_day(self, content):
         return re.findall(r'\w\s(.*) \(.*\)\s*', content)
+
+
+class JarosovaRestaurant(Restaurant):
+    def __init__(self) -> None:
+        super().__init__()
+        self.content = None
+        self.name = 'Jedáleň Jarošová (3.79€)'
+        self.url = 'http://vasestravovanie.sk/jedalny-listok-jar/'
+
+    def retrieve_menu(self, day=TODAY) -> Menu:
+        r = requests.get(self.url)
+        self.content = BeautifulSoup(r.content, 'html.parser')
+        return self.parse_menu(day)
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        table = self.content.find('table')
+        date_rows = table.select('tbody tr')[1::10]
+        dates = [i.select('span')[0].text for i in date_rows]
+        day_index = dates.index(datetime.today().strftime('%d.%m.%Y'))
+        els = table.select('tbody tr')[10 * day_index:10 * day_index + 9]
+        for idx, i in enumerate(els):
+            menu.add_item(i.select('span')[2].text if idx == 1 else i.select('span')[3].text)
+        return menu
+
