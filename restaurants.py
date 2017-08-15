@@ -92,7 +92,7 @@ class BednarRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
         self.content = None
-        self.name = 'Bednar'
+        self.name = 'Bednar (3.9€)'
         self.url = 'http://bednarrestaurant.sk/new/wordpress/?page_id=62'
 
     def retrieve_menu(self, day=TODAY) -> Menu:
@@ -150,7 +150,7 @@ class DonQuijoteRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
         self.content = None
-        self.name = 'Don Quijote (4.9€ / 4.40€)'
+        self.name = 'Don Quijote (4.9€ / 4.4€ bez polievky)'
 
     def retrieve_menu(self, day=TODAY) -> Menu:
         token_json = self.get_access_token()
