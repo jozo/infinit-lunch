@@ -240,7 +240,7 @@ class JarosovaRestaurant(Restaurant):
         super().__init__()
         self.content = None
         self.name = 'Jedáleň Jarošová (3.79€)'
-        self.url = 'http://vasestravovanie.sk/jedalny-listok-jar/'
+        self.url = 'http://vasestravovanie.sk/jedalny-listok-sav/'
 
     def retrieve_menu(self, day=TODAY) -> Menu:
         r = requests.get(self.url)
