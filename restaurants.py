@@ -177,9 +177,12 @@ class DonQuijoteRestaurant(Restaurant):
         return menu
 
     def _parse_all_days(self):
-        return re.search(r'Pondelok:\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
+        res = re.search(r'Pondelok:\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
                          self.content,
-                         re.DOTALL | re.MULTILINE).groups()
+                         re.DOTALL | re.MULTILINE)
+        if res:
+            return res.groups()
+        return ['https://www.facebook.com/Don-Quijote-1540992416123114/ (cekni si to sam)' for i in range(7)]
 
     def _parse_day(self, content):
         return re.findall(r'\w\s(.*) \(.*\)\s*', content)
