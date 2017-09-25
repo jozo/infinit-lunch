@@ -28,7 +28,7 @@ def retrieve_menus():
         restaurants.DonQuijoteRestaurant().retrieve_menu(),
         restaurants.DreamsRestaurant().retrieve_menu(),
         restaurants.GastrohouseRestaurant().retrieve_menu(),
-        restaurants.JarosovaRestaurant().retrieve_menu(),
+        # restaurants.JarosovaRestaurant().retrieve_menu(),
         restaurants.OtherRestaurant().retrieve_menu(),
     ]
 
