@@ -303,4 +303,5 @@ class OtherRestaurant(Restaurant):
         menu.add_item('Freshmarket :watermelon:')
         menu.add_item('Kantína :fork_and_knife:')
         menu.add_item('Kebab Miletička :taco:')
+        menu.add_item('Hladovka :middle_finger:')
         return menu
