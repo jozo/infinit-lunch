@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest.mock import Mock, call
 
-from restaurants import DonQuijoteRestaurant, Menu, FormattedMenus
+from restaurants import DonQuijoteRestaurant, Menu, FormattedMenus, SafeRestaurant
 from slack import Channel
 
 
@@ -52,6 +52,25 @@ class TestFormattedMenus:
         assert len(formatted_menus) == 2
         assert str(formatted_menus[0]) == FORMATTED_MENU_1
         assert str(formatted_menus) == FORMATTED_MENU_2
+
+
+class TestSafeRestaurant:
+    def setup(self):
+        self.nested_restaurant = DonQuijoteRestaurant()
+        self.restaurant = SafeRestaurant(self.nested_restaurant)
+
+    def test_returns_menu_if_everything_ok(self):
+        self.nested_restaurant.retrieve_menu = lambda: ['Letná minestrone']
+        menu = self.restaurant.retrieve_menu()
+
+        assert menu == ['Letná minestrone']
+
+    def test_returns_url_for_restaurant_if_exception(self):
+        self.nested_restaurant.retrieve_menu = lambda: exec('raise(Exception())')
+        menu = self.restaurant.retrieve_menu()
+
+        assert menu.foods == ['Problem with scraping. Check menu yourself on '
+                              'https://www.facebook.com/Don-Quijote-1540992416123114/']
 
 
 MENU_1 = """*Restaurant A*

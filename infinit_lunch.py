@@ -5,7 +5,8 @@ import requests
 from flask import Flask
 from raven.contrib.flask import Sentry
 
-import restaurants
+from restaurants import SafeRestaurant, BednarRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, DreamsRestaurant, \
+    GastrohouseRestaurant, JarosovaRestaurant, OtherRestaurant, FormattedMenus
 from slack import Channel
 
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
@@ -23,13 +24,13 @@ def is_work_day():
 
 def retrieve_menus():
     return [
-        restaurants.BednarRestaurant().retrieve_menu(),
-        restaurants.BreweriaRestaurant().retrieve_menu(),
-        restaurants.DonQuijoteRestaurant().retrieve_menu(),
-        restaurants.DreamsRestaurant().retrieve_menu(),
-        restaurants.GastrohouseRestaurant().retrieve_menu(),
-        # restaurants.JarosovaRestaurant().retrieve_menu(),
-        restaurants.OtherRestaurant().retrieve_menu(),
+        SafeRestaurant(BednarRestaurant()).retrieve_menu(),
+        SafeRestaurant(BreweriaRestaurant()).retrieve_menu(),
+        SafeRestaurant(DonQuijoteRestaurant()).retrieve_menu(),
+        SafeRestaurant(DreamsRestaurant()).retrieve_menu(),
+        SafeRestaurant(GastrohouseRestaurant()).retrieve_menu(),
+        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(),
+        SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 
 
@@ -41,7 +42,7 @@ def should_send_to_slack(secret_key):
 @app.route('/<secret_key>')
 def hello(secret_key):
     if is_work_day():
-        menus = restaurants.FormattedMenus(retrieve_menus())
+        menus = FormattedMenus(retrieve_menus())
         if should_send_to_slack(secret_key):
             Channel(SLACK_HOOK, requests).send(menus)
         return '<pre>{}</pre>'.format(menus)

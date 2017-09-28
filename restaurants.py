@@ -88,6 +88,27 @@ class Restaurant(abc.ABC):
         pass
 
 
+class SafeRestaurant(Restaurant):
+    """
+    Catch all exceptions so the application will not broke
+    """
+
+    def __init__(self, restaurant) -> None:
+        super().__init__()
+        self.restaurant = restaurant
+
+    def retrieve_menu(self, day=TODAY) -> Menu:
+        try:
+            return self.restaurant.retrieve_menu()
+        except Exception:
+            from infinit_lunch import sentry
+            sentry.captureException()
+
+            menu = Menu(self.restaurant.name)
+            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.restaurant.url))
+            return menu
+
+
 class BednarRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
@@ -151,6 +172,7 @@ class DonQuijoteRestaurant(Restaurant):
         super().__init__()
         self.content = None
         self.name = 'Don Quijote (4.9€ / 4.4€ bez polievky)'
+        self.url = 'https://www.facebook.com/Don-Quijote-1540992416123114/'
 
     def retrieve_menu(self, day=TODAY) -> Menu:
         token_json = self.get_access_token()
