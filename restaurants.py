@@ -304,4 +304,5 @@ class OtherRestaurant(Restaurant):
         menu.add_item('Kantína :fork_and_knife:')
         menu.add_item('Kebab Miletička :taco:')
         menu.add_item('Hladovka :middle_finger:')
+        menu.add_item('Bistro.sk :car:')
         return menu
