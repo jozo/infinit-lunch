@@ -24,12 +24,12 @@ def is_work_day():
 
 def retrieve_menus():
     return [
+        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(),
         SafeRestaurant(BednarRestaurant()).retrieve_menu(),
         SafeRestaurant(BreweriaRestaurant()).retrieve_menu(),
         SafeRestaurant(DonQuijoteRestaurant()).retrieve_menu(),
         SafeRestaurant(DreamsRestaurant()).retrieve_menu(),
         SafeRestaurant(GastrohouseRestaurant()).retrieve_menu(),
-        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(),
         SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 

@@ -276,12 +276,11 @@ class JarosovaRestaurant(Restaurant):
         menu = Menu(self.name)
         try:
             table = self.content.find('table')
-            date_rows = table.select('tbody tr')[1::10]
-            dates = [i.select('span')[0].text for i in date_rows]
-            day_index = dates.index(datetime.today().strftime('%d.%m.%Y'))
-            els = table.select('tbody tr')[10 * day_index:10 * day_index + 9]
-            for idx, i in enumerate(els):
-                menu.add_item(i.select('span')[2].text if idx == 1 else i.select('span')[3].text)
+            rows = [td for td in table.select('tbody tr td') if td.attrs.get('colspan') in ('5', '6')]
+            day_size = len(rows) // 5
+            idx = day_size * day
+            for td in rows[idx:idx+day_size]:
+                menu.add_item(td.text)
         except ValueError as ex:
             menu.add_item(str(ex))
         return menu
