@@ -24,13 +24,17 @@ def is_work_day():
 
 def retrieve_menus():
     return [
-        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(),
-        SafeRestaurant(BednarRestaurant()).retrieve_menu(),
-        SafeRestaurant(BreweriaRestaurant()).retrieve_menu(),
-        SafeRestaurant(DonQuijoteRestaurant()).retrieve_menu(),
-        SafeRestaurant(DreamsRestaurant()).retrieve_menu(),
-        SafeRestaurant(GastrohouseRestaurant()).retrieve_menu(),
-        SafeRestaurant(OtherRestaurant()).retrieve_menu(),
+        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(day=3),
+        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(day=3),
+        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(day=3),
+        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(day=3),
+        SafeRestaurant(JarosovaRestaurant()).retrieve_menu(day=3),
+        # SafeRestaurant(BednarRestaurant()).retrieve_menu(day=3),
+        # SafeRestaurant(BreweriaRestaurant()).retrieve_menu(day=3),
+        # SafeRestaurant(DonQuijoteRestaurant()).retrieve_menu(day=3),
+        # SafeRestaurant(DreamsRestaurant()).retrieve_menu(day=3),
+        # SafeRestaurant(GastrohouseRestaurant()).retrieve_menu(day=3),
+        # SafeRestaurant(OtherRestaurant()).retrieve_menu(day=3),
     ]
 
 
@@ -41,7 +45,7 @@ def should_send_to_slack(secret_key):
 @app.route('/', defaults={'secret_key': 'wrong key'})
 @app.route('/<secret_key>')
 def hello(secret_key):
-    if is_work_day():
+    if not is_work_day():
         menus = FormattedMenus(retrieve_menus())
         if should_send_to_slack(secret_key):
             Channel(SLACK_HOOK, requests).send(menus)
