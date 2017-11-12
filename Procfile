@@ -1,1 +1,1 @@
-web: gunicorn infinit_lunch:app
+web: gunicorn async_test:app --config gunicorn.conf

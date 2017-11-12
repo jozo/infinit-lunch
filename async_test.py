@@ -3,8 +3,8 @@ import asyncio
 import aiohttp
 from aiohttp import web
 
-from restaurants import FormattedMenus, SafeRestaurant, BednarRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, DreamsRestaurant, \
-    GastrohouseRestaurant, JarosovaRestaurant, OtherRestaurant
+from restaurants import FormattedMenus, SafeRestaurant, BednarRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, \
+    DreamsRestaurant, GastrohouseRestaurant, JarosovaRestaurant, OtherRestaurant
 
 
 async def retrieve_menus():
@@ -36,4 +36,4 @@ app.router.add_get('/', index)
 
 
 if __name__ == '__main__':
-    web.run_app(app, host='localhost', port=5001)
+    web.run_app(app, host='localhost', port=5000)

@@ -17,6 +17,7 @@ aiohttp-debugtoolbar = "*"
 aiohttp = ">=2,<3"
 "aiohttp-jinja2" = "*"
 "bs4" = "*"
+gunicorn = "*"
 
 
 [requires]
