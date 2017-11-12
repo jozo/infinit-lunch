@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 FB_APP_ID = os.environ.get('FB_APP_ID', None)
 FB_APP_SECRET = os.environ.get('FB_APP_SECRET', None)
 NO_PRICE = object()
-# TODAY = datetime.today().weekday()
-TODAY = 3
+TODAY = datetime.today().weekday()
+# TODAY = 3
 DAY_NAMES = [
     'pondelok',
     'utorok',
