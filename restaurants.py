@@ -4,13 +4,13 @@ import re
 import abc
 from datetime import datetime
 
-import requests
 from bs4 import BeautifulSoup
 
 FB_APP_ID = os.environ.get('FB_APP_ID', None)
 FB_APP_SECRET = os.environ.get('FB_APP_SECRET', None)
 NO_PRICE = object()
-TODAY = datetime.today().weekday()
+# TODAY = datetime.today().weekday()
+TODAY = 3
 DAY_NAMES = [
     'pondelok',
     'utorok',
@@ -97,9 +97,9 @@ class SafeRestaurant(Restaurant):
         super().__init__()
         self.restaurant = restaurant
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
+    async def retrieve_menu(self, day=TODAY) -> Menu:
         try:
-            return self.restaurant.retrieve_menu()
+            return await self.restaurant.retrieve_menu(day)
         except Exception:
             from infinit_lunch import sentry
             sentry.captureException()
@@ -110,16 +110,17 @@ class SafeRestaurant(Restaurant):
 
 
 class BednarRestaurant(Restaurant):
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
         super().__init__()
+        self.aio_session = session
         self.content = None
         self.name = 'Bednar (3.9€)'
         self.url = 'http://bednarrestaurant.sk/new/wordpress/?page_id=62'
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
-        r = requests.get(self.url)
-        self.content = BeautifulSoup(r.content, 'html.parser')
-        return self.parse_menu(day)
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -138,16 +139,17 @@ class BednarRestaurant(Restaurant):
 
 
 class BreweriaRestaurant(Restaurant):
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
         super().__init__()
+        self.aio_session = session
         self.content = None
         self.name = 'Breweria'
         self.url = 'http://breweria.sk/slimak/menu/denne-menu/'
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
-        r = requests.get(self.url)
-        self.content = BeautifulSoup(r.content, 'html.parser')
-        return self.parse_menu(day)
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -168,27 +170,30 @@ class BreweriaRestaurant(Restaurant):
 
 
 class DonQuijoteRestaurant(Restaurant):
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
         super().__init__()
+        self.aio_session = session
         self.content = None
         self.name = 'Don Quijote (4.9€ / 4.4€ bez polievky)'
         self.url = 'https://www.facebook.com/Don-Quijote-1540992416123114/'
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
-        token_json = self.get_access_token()
-        posts = self.get_last_messages(token_json)
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        token_json = await self.get_access_token()
+        posts = await self.get_last_messages(token_json)
         self.content = posts['data'][0]['message']
         return self.parse_menu(day)
 
-    def get_last_messages(self, token_json):
-        r = requests.get('https://graph.facebook.com/1540992416123114/feed', params=token_json)
-        token_json = json.loads(r.text)
-        return token_json
+    async def get_access_token(self):
+        url = 'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials' \
+              '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET)
+        async with self.aio_session.get(url) as resp:
+            return json.loads(await resp.text())  # access token
 
-    def get_access_token(self):
-        r = requests.get('https://graph.facebook.com/oauth/access_token?grant_type=client_credentials'
-                         '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET))
-        return json.loads(r.text)  # access token
+    async def get_last_messages(self, token_json):
+        url = 'https://graph.facebook.com/1540992416123114/feed?'
+        query = '&'.join([f'{k}={v}' for k, v in token_json.items()])
+        async with self.aio_session.get(url + query) as resp:
+            return json.loads(await resp.text())
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -211,16 +216,17 @@ class DonQuijoteRestaurant(Restaurant):
 
 
 class DreamsRestaurant(Restaurant):
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
         super().__init__()
+        self.aio_session = session
         self.content = None
         self.name = 'Dream\'s'
         self.url = 'http://www.dreams-res.sk/menu/daily_menu_sk.php'
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
-        r = requests.get(self.url)
-        self.content = BeautifulSoup(r.content, 'html.parser')
-        return self.parse_menu(day)
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -240,16 +246,17 @@ class DreamsRestaurant(Restaurant):
 
 
 class GastrohouseRestaurant(Restaurant):
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
         super().__init__()
+        self.aio_session = session
         self.content = None
         self.name = 'Gastrohouse a.k.a. vývarovňa Slimák (3.8€)'
         self.url = 'http://gastrohouse.sk/'
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
-        r = requests.get(self.url)
-        self.content = BeautifulSoup(r.content, 'html.parser')
-        return self.parse_menu(day)
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -261,16 +268,17 @@ class GastrohouseRestaurant(Restaurant):
 
 
 class JarosovaRestaurant(Restaurant):
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
         super().__init__()
+        self.aio_session = session
         self.content = None
         self.name = 'Jedáleň Jarošová (3.79€)'
         self.url = 'http://vasestravovanie.sk/jedalny-listok-sav/'
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
-        r = requests.get(self.url)
-        self.content = BeautifulSoup(r.content, 'html.parser')
-        return self.parse_menu(day)
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -293,7 +301,7 @@ class OtherRestaurant(Restaurant):
         self.name = 'Iné (hlasuj pomocou emoji)'
         self.url = None
 
-    def retrieve_menu(self, day=TODAY) -> Menu:
+    async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
         menu.add_item('Panda (5.8€) :panda_face:')
         menu.add_item('Cigipanda :man::skin-tone-5:')
