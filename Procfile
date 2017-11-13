@@ -1,1 +1,1 @@
-web: gunicorn async_test:app --config gunicorn.conf
+web: gunicorn main:app --config gunicorn.conf

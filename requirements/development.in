@@ -1,9 +1,0 @@
--r production.in
-
-pytest>=3.2,<=4.0
-ipython
-
-
-# default packages for virtualfish
-appdirs
-six
