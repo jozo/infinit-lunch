@@ -74,7 +74,7 @@ class FormattedMenus:
         self.formatted += [str(m) for m in self.menus[1:]]
 
     def add_header(self, menu):
-        return "*Obedy v {} {}*\n\n{}".format(DAY_NAMES[self.today.weekday()],
+        return "*Obedy v {} {}*\n\n{}".format(DAY_NAMES2[self.today.weekday()],
                                               self.today.strftime('%d.%m.%Y'),
                                               menu)
 
@@ -187,8 +187,7 @@ class DonQuijoteRestaurant(Restaurant):
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         token_json = await self.get_access_token()
-        posts = await self.get_last_messages(token_json)
-        self.content = posts['data'][0]['message']
+        self.content = await self.get_last_messages(token_json)
         return self.parse_menu(day)
 
     async def get_access_token(self):
@@ -204,7 +203,7 @@ class DonQuijoteRestaurant(Restaurant):
             messages = json.loads(await resp.text())
             for msg in messages['data']:
                 if 'OBEDOVÉ MENU' in msg['message']:
-                    return msg
+                    return msg['message']
             return ''
 
     def parse_menu(self, day):
@@ -225,6 +224,55 @@ class DonQuijoteRestaurant(Restaurant):
 
     def _parse_day(self, content):
         return re.findall(r'\w\s(.*) \(.*\)\s*', content)
+
+
+class KantinaRestaurant(Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'Kantína (4.8€ / 4€ bez polievky)'
+        self.url = 'https://www.facebook.com/onlinechef.sk/'
+
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        token_json = await self.get_access_token()
+        self.content = await self.get_last_messages(token_json, day)
+        return self.parse_menu(day)
+
+    async def get_access_token(self):
+        url = 'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials' \
+              '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET)
+        async with self.aio_session.get(url) as resp:
+            return json.loads(await resp.text())  # access token
+
+    async def get_last_messages(self, token_json, day):
+        url = 'https://graph.facebook.com/1722019888053332/feed?'
+        query = '&'.join([f'{k}={v}' for k, v in token_json.items()])
+        async with self.aio_session.get(url + query) as resp:
+            messages = json.loads(await resp.text())
+            for msg in messages['data']:
+                if 'Pondelok' in msg.get('message', ''):
+                    return msg['message']
+            return ''
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        all_days_menu = self._parse_all_days()
+        selected_day_menu = self._parse_day(all_days_menu[day])
+        for food in selected_day_menu:
+            menu.add_item(food)
+        return menu
+
+    def _parse_all_days(self):
+        res = re.search(r'.*\s*Pondelok\s*\n(.*)Utorok\s*\n(.*)Streda\s*\n(.*)Štvrtok\s*\n(.*)Piatok\s*\n(.*)^\s*$',
+                         self.content,
+                         re.DOTALL | re.MULTILINE)
+        if res:
+            return res.groups()
+        return ['{} (cekni si to sam)'.format(self.url) for i in range(len(DAY_NAMES))]
+
+    def _parse_day(self, content):
+        return [x.strip() for x in content.split('\n') if x.strip()]
 
 
 class DreamsRestaurant(Restaurant):
