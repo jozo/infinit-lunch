@@ -27,13 +27,13 @@ def should_send_to_slack(secret_key):
 
 async def retrieve_menus(session):
     futures = [
-        SafeRestaurant(JarosovaRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(BednarRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(BreweriaRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(DonQuijoteRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(DreamsRestaurant(session)).retrieve_menu(),
+        # SafeRestaurant(JarosovaRestaurant(session)).retrieve_menu(),
+        # SafeRestaurant(BednarRestaurant(session)).retrieve_menu(),
+        # SafeRestaurant(BreweriaRestaurant(session)).retrieve_menu(),
+        # SafeRestaurant(DonQuijoteRestaurant(session)).retrieve_menu(),
+        # SafeRestaurant(DreamsRestaurant(session)).retrieve_menu(),
         SafeRestaurant(GastrohouseRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(OtherRestaurant()).retrieve_menu(),
+        # SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 
     menus = []

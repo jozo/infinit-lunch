@@ -19,6 +19,15 @@ DAY_NAMES = [
     'sobota',
     'nedeľa',
 ]
+DAY_NAMES2 = [              # vysklonovane nazvy
+    'pondelok',
+    'utorok',
+    'stredu',
+    'štvrtok',
+    'piatok',
+    'sobotu',
+    'nedeľu',
+]
 
 
 class Menu:
@@ -192,7 +201,11 @@ class DonQuijoteRestaurant(Restaurant):
         url = 'https://graph.facebook.com/1540992416123114/feed?'
         query = '&'.join([f'{k}={v}' for k, v in token_json.items()])
         async with self.aio_session.get(url + query) as resp:
-            return json.loads(await resp.text())
+            messages = json.loads(await resp.text())
+            for msg in messages['data']:
+                if 'OBEDOVÉ MENU' in msg['message']:
+                    return msg
+            return ''
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -259,11 +272,14 @@ class GastrohouseRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        blocks = self.content.select('.td-main-page-wrap')[0].select('ul')
-        menu_block = blocks[-2] if len(blocks) == 7 else blocks[-1]     # if there is menu for 2 days, there is 7 blocks
-        for food in menu_block.select('li'):                            # if there is menu for 1 day, there is only 6 blocks
-            menu.add_item(food.text)
-        return menu
+        main_content = self.content.select('.td-main-page-wrap')[0].text
+        for part in main_content.split('Čo je na obed'):
+            if DAY_NAMES2[day] in part.lower():
+                foods = [x.strip() for x in part.split('\n') if x.strip()]
+                for food in foods[1:-1]:
+                    menu.add_item(food)
+                return menu
+        raise ValueError('Can not find menu')
 
 
 class JarosovaRestaurant(Restaurant):
