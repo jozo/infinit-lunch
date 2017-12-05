@@ -270,7 +270,7 @@ class KantinaRestaurant(Restaurant):
                          re.DOTALL | re.MULTILINE)
         if res:
             return res.groups()
-        return ['{} (cekni si to sam)'.format(self.url) for i in range(len(DAY_NAMES))]
+        raise ValueError('Can not parse menu')
 
     def _parse_day(self, content):
         return [x.strip() for x in content.split('\n') if x.strip()]
