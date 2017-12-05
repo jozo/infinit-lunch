@@ -109,8 +109,9 @@ class SafeRestaurant(Restaurant):
         try:
             return await self.restaurant.retrieve_menu(day)
         except Exception:
-            from infinit_lunch import sentry
-            sentry.captureException()
+            # TODO fix sentry
+            # from infinit_lunch import sentry
+            # sentry.captureException()
 
             menu = Menu(self.restaurant.name)
             menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.restaurant.url))
