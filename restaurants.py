@@ -133,17 +133,14 @@ class BednarRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        try:
-            groups = re.search(r'PONDELOK(.*)UTOROK(.*)STREDA(.*)ŠTVRTOK(.*)PIATOK(.*)BEDNAR',
-                               self.content.text,
-                               re.DOTALL
-                               ).groups()
-            for food in groups[day].split('\n'):
-                if food.strip():
-                    food = re.findall(r'\s*-\s*(.*)', food.strip())[0]
-                    menu.add_item(food)
-        except (IndexError, AttributeError) as ex:
-            menu.add_item('Problem with parsing - {}'.format(ex))
+        groups = re.search(r'PONDELOK(.*)UTOROK(.*)STREDA(.*)ŠTVRTOK(.*)PIATOK(.*)BEDNAR',
+                           self.content.text,
+                           re.DOTALL
+                           ).groups()
+        for food in groups[day].split('\n'):
+            if food.strip():
+                food = re.findall(r'\s*-\s*(.*)', food.strip())[0]
+                menu.add_item(food)
         return menu
 
 
@@ -216,7 +213,7 @@ class DonQuijoteRestaurant(Restaurant):
         return menu
 
     def _parse_all_days(self):
-        res = re.search(r'Pondelok:\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
+        res = re.search(r'(Pondelok:)?\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
                          self.content,
                          re.DOTALL | re.MULTILINE)
         if res:
@@ -321,6 +318,9 @@ class GastrohouseRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
+        menu.add_item('Ospravedlňujeme sa, ale obedové menu bude na stránke k dispozícii od 5. 2. 2018. '
+                      'Varíme od 8. 1. 2018.')
+        return menu
         main_content = self.content.select('.td-main-page-wrap')[0].text
         for part in main_content.split('Čo je na obed'):
             if DAY_NAMES2[day] in part.lower():
