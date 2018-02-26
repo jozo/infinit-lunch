@@ -31,7 +31,7 @@ async def retrieve_menus(session):
         SafeRestaurant(BreweriaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(DonQuijoteRestaurant(session)).retrieve_menu(),
         SafeRestaurant(DreamsRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(GastrohouseRestaurant(session)).retrieve_menu(),
+        # SafeRestaurant(GastrohouseRestaurant(session)).retrieve_menu(),
         SafeRestaurant(KantinaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
