@@ -368,11 +368,11 @@ class OtherRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
         menu.add_item('Panda (5.8€) :panda_face:')
+        menu.add_item('Gastrohouse :house:')
+        menu.add_item('Freshmarket :watermelon:')
         menu.add_item('Cigipanda :man::skin-tone-5:')
         menu.add_item('Punjabi Dhaba :man_with_turban:')
         menu.add_item('Casa Inka :dancer:')
-        menu.add_item('Freshmarket :watermelon:')
-        menu.add_item('Kantína :fork_and_knife:')
         menu.add_item('Kebab Miletička :taco:')
         menu.add_item('Hladovka :middle_finger:')
         menu.add_item('Bistro.sk :car:')
