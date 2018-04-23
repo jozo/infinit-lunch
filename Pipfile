@@ -15,7 +15,7 @@ pytest = "*"
 
 [packages]
 
-aiohttp = ">=2,<3"
+aiohttp = "*"
 "aiohttp-jinja2" = "*"
 "bs4" = "*"
 gunicorn = "*"
