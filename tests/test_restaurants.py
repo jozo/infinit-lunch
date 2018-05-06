@@ -8,6 +8,19 @@ from restaurants import DonQuijoteRestaurant, Menu, FormattedMenus, SafeRestaura
 from slack import Channel
 
 
+class AsyncMock(Mock):
+
+    def __call__(self, *args, **kwargs):
+        sup = super(AsyncMock, self)
+
+        async def coro():
+            return sup.__call__(*args, **kwargs)
+        return coro()
+
+    def __await__(self):
+        return self().__await__()
+
+
 class TestDonQuijoteRestaurant:
     def setup(self):
         self.restaurant = DonQuijoteRestaurant(session=None)
@@ -20,16 +33,17 @@ class TestDonQuijoteRestaurant:
                               'Penne so špenátom a gorgonzolou']
 
 
-# class TestChannel:
-#     def test_send_provided_messages(self):
-#         http = Mock()
-#         url = 'http://url'
-#         ch = Channel(url, http)
-#         ch.send(['first message', 'second message'])
-#
-#         assert http.post.call_count == 2
-#         assert http.post.call_args_list == [call(url, data='{"text": "first message"}'),
-#                                             call(url, data='{"text": "second message"}')]
+class TestChannel:
+    @pytest.mark.asyncio
+    async def test_send_provided_messages(self):
+        http = AsyncMock()
+        url = 'http://url'
+        ch = Channel(url, http)
+        await ch.send(['first message', 'second message'])
+
+        assert http.post.call_count == 2
+        assert http.post.call_args_list == [call(url, json={'text': 'first message'}),
+                                            call(url, json={'text': 'second message'})]
 
 
 class TestMenu:
@@ -57,23 +71,28 @@ class TestFormattedMenus:
         assert str(formatted_menus) == FORMATTED_MENU_2
 
 
-# class TestSafeRestaurant:
-#     def setup(self):
-#         self.nested_restaurant = DonQuijoteRestaurant()
-#         self.restaurant = SafeRestaurant(self.nested_restaurant)
-#
-#     def test_returns_menu_if_everything_ok(self):
-#         self.nested_restaurant.retrieve_menu = lambda: ['Letná minestrone']
-#         menu = self.restaurant.retrieve_menu()
-#
-#         assert menu == ['Letná minestrone']
-#
-#     def test_returns_url_for_restaurant_if_exception(self):
-#         self.nested_restaurant.retrieve_menu = lambda: exec('raise(Exception())')
-#         menu = self.restaurant.retrieve_menu()
-#
-#         assert menu.foods == ['Problem with scraping. Check menu yourself on '
-#                               'https://www.facebook.com/Don-Quijote-1540992416123114/']
+class TestSafeRestaurant:
+    def setup(self):
+        self.nested_restaurant = DonQuijoteRestaurant(AsyncMock())
+        self.restaurant = SafeRestaurant(self.nested_restaurant)
+
+    async def _async_fake_retrieve_menu(self, day):
+        return ['Letná minestrone']
+
+    @pytest.mark.asyncio
+    async def test_returns_menu_if_everything_ok(self):
+        self.nested_restaurant.retrieve_menu = self._async_fake_retrieve_menu
+        menu = await self.restaurant.retrieve_menu()
+
+        assert menu == ['Letná minestrone']
+
+    @pytest.mark.asyncio
+    async def test_returns_url_for_restaurant_if_exception(self):
+        self.nested_restaurant.retrieve_menu = lambda: exec('raise(Exception())')
+        menu = await self.restaurant.retrieve_menu()
+
+        assert menu.foods == ['Problem with scraping. Check menu yourself on '
+                              'https://www.facebook.com/Don-Quijote-1540992416123114/']
 
 
 class TestGastrohouse:

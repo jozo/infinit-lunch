@@ -263,8 +263,8 @@ class KantinaRestaurant(Restaurant):
 
     def _parse_all_days(self):
         res = re.search(r'.*\s*Pondelok\s*\n(.*)Utorok\s*\n(.*)Streda\s*\n(.*)Štvrtok\s*\n(.*)Piatok\s*\n(.*)^\s*',
-                         self.content,
-                         re.DOTALL | re.MULTILINE)
+                        self.content,
+                        re.DOTALL | re.MULTILINE)
         if res:
             return res.groups()
         raise ValueError('Can not parse menu')
@@ -318,9 +318,6 @@ class GastrohouseRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        menu.add_item('Ospravedlňujeme sa, ale obedové menu bude na stránke k dispozícii od 5. 2. 2018. '
-                      'Varíme od 8. 1. 2018.')
-        return menu
         main_content = self.content.select('.td-main-page-wrap')[0].text
         for part in main_content.split('Čo je na obed'):
             if DAY_NAMES2[day] in part.lower():
@@ -367,7 +364,7 @@ class OtherRestaurant(Restaurant):
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
-        menu.add_item('Panda (5.8€) :panda_face:')
+        menu.add_item('Panda (6.3€) :panda_face:')
         menu.add_item('Gastrohouse :house:')
         menu.add_item('Freshmarket :watermelon:')
         menu.add_item('Cigipanda :man::skin-tone-5:')
