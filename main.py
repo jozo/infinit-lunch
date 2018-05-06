@@ -46,7 +46,7 @@ async def retrieve_menus(session):
 
 
 async def index(request):
-    if is_work_day() or True:
+    if is_work_day():
         async with aiohttp.ClientSession() as session:
             menus = FormattedMenus(await retrieve_menus(session))
             secret_key = request.match_info.get('secret_key')
