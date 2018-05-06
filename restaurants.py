@@ -261,7 +261,7 @@ class KantinaRestaurant(Restaurant):
         return menu
 
     def _parse_all_days(self):
-        res = re.search(r'.*\s*Pondelok\s*\n(.*)Utorok\s*\n(.*)Streda\s*\n(.*)Štvrtok\s*\n(.*)Piatok\s*\n(.*)^\s*',
+        res = re.search(r'.*\s*Pondelok\s*\n(.*)Utorok\s*\n(.*)Streda\s*\n(.*)Štvrtok\s*\n(.*)Piatok\s*\n(.*)',
                         self.content,
                         re.DOTALL | re.MULTILINE)
         if res:
@@ -369,7 +369,6 @@ class OtherRestaurant(Restaurant):
         menu.add_item('Cigipanda :man::skin-tone-5:')
         menu.add_item('Punjabi Dhaba :man_with_turban:')
         menu.add_item('Casa Inka :dancer:')
-        menu.add_item('Kebab Miletička :taco:')
         menu.add_item('Hladovka :middle_finger:')
         menu.add_item('Bistro.sk :car:')
         return menu

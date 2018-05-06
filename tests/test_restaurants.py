@@ -4,7 +4,8 @@ import pytest
 
 from bs4 import BeautifulSoup
 
-from restaurants import DonQuijoteRestaurant, Menu, FormattedMenus, SafeRestaurant, GastrohouseRestaurant
+from restaurants import DonQuijoteRestaurant, Menu, FormattedMenus, SafeRestaurant, GastrohouseRestaurant, \
+    KantinaRestaurant
 from slack import Channel
 
 
@@ -168,6 +169,18 @@ class TestGastrohouse:
             ]
 
 
+class TestKantina:
+    def test_correct_parse_friday(self):
+        restaurant = KantinaRestaurant(AsyncMock())
+        restaurant.content = KANTINA_FB_MESSAGE
+        menu = restaurant.parse_menu(4)
+        assert menu.foods == [
+            'Hrstková polievka s parkom',
+            '1. Losos na pare, zemiakové pyré, s pomarančovo pórovou omáčkou, listový šalát',
+            '2.Tvarohová žemľovka s ovocím',
+        ]
+
+
 MENU_1 = """*Restaurant A*
 1. Food 1 (4.5€)
 2. Food 2"""
@@ -222,3 +235,26 @@ Piatok:
 
 Všetky naše jedlá MÔŽU OBSAHOVAŤ ktorýkoľvek z nižšie uvedených alergénov v stopových množstvách.
 1. Obilniny obsahujúce lepok (t.j. pšenica, raž, jačmeň, ovos, špalda, kamut alebo ich hybridné odrody); 2. Kôrovce a výrobky z nich; 3. Vajcia a výrobky z nich; 4. Ryby a výrobky z nich; 5. Arašidy a výrobky z nich; 6. Sójové zrná a výrobky z nich; 7. Mlieko a výrobky z neho; 8. Orechy, ktorými sú mandle, lieskové orechy, vlašské orechy, kešu, pekanové orechy, para orechy, pistácie, makadamové orechy a queenslandské orechy a výrobky z nich; 9. Zeler a výrobky z neho; 10. Horčica a výrobky z nej; 11. Sezamové semená a výrobky z nich; 12. Oxid siričitý a siričitany v koncentráciách vyšších ako 10 mg/kg alebo 10 mg/l; 13. Vlčí bob a výrobky z neho; 14. Mäkkýše a výrobky z nich"""
+
+
+KANTINA_FB_MESSAGE = """Jedálny lístok 30.4. - 4.5.2018
+Pondelok
+Zatvorené
+
+Utorok
+Zatvorené
+
+Streda
+Slepačia polievka
+1. Pečené kuracie stehná, zemiaky v šupke, uhorkový šalát
+2. Cetsoviny Aglio olio
+
+Štvrtok
+Špargľové kapučíno
+1. Francúzske zemiaky, šalát
+2. Dusené bravčove na keli, zemiaky
+
+Piatok
+Hrstková polievka s parkom 
+1. Losos na pare, zemiakové pyré, s pomarančovo pórovou omáčkou, listový šalát
+2.Tvarohová žemľovka s ovocím"""
