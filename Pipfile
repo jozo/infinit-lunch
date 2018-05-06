@@ -16,6 +16,7 @@ aiohttp = "*"
 "aiohttp-jinja2" = "*"
 "bs4" = "*"
 gunicorn = "*"
+raven = "*"
 
 [requires]
 python_version = "3.6"

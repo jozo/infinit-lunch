@@ -1,16 +1,18 @@
-import os
+#!/usr/bin/env python3
+
 import asyncio
+import os
 from datetime import datetime
 
 import aiohttp
 from aiohttp import web
+from raven import Client
 
-from restaurants import FormattedMenus, SafeRestaurant, BednarRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, \
-    DreamsRestaurant, GastrohouseRestaurant, JarosovaRestaurant, OtherRestaurant, KantinaRestaurant
-
-# SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+from restaurants import FormattedMenus, SafeRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, \
+    DreamsRestaurant, OtherRestaurant, KantinaRestaurant
 from slack import Channel
 
+# SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
 SECRET_KEY = os.environ.get('SECRET_KEY', None)
 DEBUG = bool(os.environ.get('DEBUG', False))
@@ -44,7 +46,7 @@ async def retrieve_menus(session):
 
 
 async def index(request):
-    if is_work_day():
+    if is_work_day() or True:
         async with aiohttp.ClientSession() as session:
             menus = FormattedMenus(await retrieve_menus(session))
             secret_key = request.match_info.get('secret_key')
@@ -53,6 +55,8 @@ async def index(request):
             return web.Response(text=str(menus))
     return web.Response(text='Come on Monday-Friday')
 
+
+sentry_client = Client()            # credentials is taken from environment variable SENTRY_DSN
 
 app = web.Application(debug=True)
 app.router.add_get('/', index)
