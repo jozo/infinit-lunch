@@ -317,14 +317,17 @@ class GastrohouseRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        main_content = self.content.select('.td-main-page-wrap')[0].text
-        for part in main_content.split('Čo je na obed'):
-            if DAY_NAMES2[day] in part.lower():
-                foods = [x.strip() for x in part.split('\n') if x.strip()]
-                for food in foods[1:-1]:
-                    menu.add_item(food)
-                return menu
-        raise ValueError('Can not find menu')
+        daily_menu = self.content.select_one('section.denne-menu').find_all('section')
+        today_menu = [section for section in daily_menu
+                      if section.find('h2').text.rstrip().lower().endswith(DAY_NAMES[day])]
+        if not today_menu:
+            raise ValueError('Can not find menu')
+
+        for li in today_menu[0].find_all('li'):
+            price = float(li.find_all('div')[-1].text.strip()[:-2].replace(',', '.'))
+            menu.add_item(li.find('h3').text.strip(), price)
+
+        return menu
 
 
 class JarosovaRestaurant(Restaurant):

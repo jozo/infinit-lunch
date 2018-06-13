@@ -8,8 +8,8 @@ import aiohttp
 from aiohttp import web
 from raven import Client
 
-from restaurants import FormattedMenus, SafeRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, \
-    DreamsRestaurant, OtherRestaurant, KantinaRestaurant
+from restaurants import (FormattedMenus, SafeRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, DreamsRestaurant,
+                         OtherRestaurant, KantinaRestaurant, GastrohouseRestaurant)
 from slack import Channel
 
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
@@ -30,7 +30,7 @@ async def retrieve_menus(session):
     futures = [
         # SafeRestaurant(JarosovaRestaurant(session)).retrieve_menu(),
         # SafeRestaurant(BednarRestaurant(session)).retrieve_menu(),
-        # SafeRestaurant(GastrohouseRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(GastrohouseRestaurant(session)).retrieve_menu(),
         SafeRestaurant(BreweriaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(DonQuijoteRestaurant(session)).retrieve_menu(),
         SafeRestaurant(DreamsRestaurant(session)).retrieve_menu(),
