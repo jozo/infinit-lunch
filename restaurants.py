@@ -367,7 +367,7 @@ class OtherRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
         menu.add_item('Panda (6.3€) :panda_face:')
-        menu.add_item('Gastrohouse :house:')
+        menu.add_item('Strýko Burger :hamburger:')
         menu.add_item('Freshmarket :watermelon:')
         menu.add_item('Cigipanda :man::skin-tone-5:')
         menu.add_item('Punjabi Dhaba :man_with_turban:')
