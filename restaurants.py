@@ -179,7 +179,7 @@ class DonQuijoteRestaurant(Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Don Quijote (4.9€ / 4.4€ bez polievky)'
+        self.name = 'Don Quijote (5.5€)'
         self.url = 'https://www.facebook.com/Don-Quijote-1540992416123114/'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
@@ -205,22 +205,12 @@ class DonQuijoteRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        all_days_menu = self._parse_all_days()
-        selected_day_menu = self._parse_day(all_days_menu[day])
-        for food in selected_day_menu:
-            menu.add_item(food)
-        return menu
-
-    def _parse_all_days(self):
-        res = re.search(r'Pondelok:\s*\n(.*)Utorok:\s*\n(.*)Streda:\s*\n(.*)Štvrtok:\s*\n(.*)Piatok:\s*\n(.*)^\s*$',
-                         self.content,
-                         re.DOTALL | re.MULTILINE)
-        if res:
-            return res.groups()
-        return ['https://www.facebook.com/Don-Quijote-1540992416123114/ (cekni si to sam)' for i in range(7)]
-
-    def _parse_day(self, content):
-        return re.findall(r'\w\s(.*) \(.*\)\s*', content)
+        lines = self.content.splitlines()
+        for index, line in enumerate(lines):
+            if line.strip().lower().startswith(DAY_NAMES[day]):
+                for food in lines[index+1:index+4]:
+                    menu.add_item(food)
+                return menu
 
 
 class KantinaRestaurant(Restaurant):
