@@ -363,5 +363,6 @@ class OtherRestaurant(Restaurant):
         menu.add_item('Punjabi Dhaba :man_with_turban:')
         menu.add_item('Casa Inka :dancer:')
         menu.add_item('Hladovka :middle_finger:')
+        menu.add_item('PA&STE Salads :green_salad:')
         menu.add_item('Bistro.sk :car:')
         return menu
