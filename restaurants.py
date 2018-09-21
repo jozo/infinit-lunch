@@ -358,6 +358,7 @@ class OtherRestaurant(Restaurant):
         menu = Menu(self.name)
         menu.add_item('Bistro.sk :car:')
         menu.add_item('Casa Inka :dancer:')
+        menu.add_item('Chlebíčkovo :baguette_bread:')
         menu.add_item('Cigipanda :man::skin-tone-5:')
         menu.add_item('Freshmarket :watermelon:')
         menu.add_item('Lotus Wok :ramen:')
