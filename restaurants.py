@@ -2,7 +2,7 @@ import json
 import os
 import re
 import abc
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from bs4 import BeautifulSoup
 
@@ -184,8 +184,12 @@ class DonQuijoteRestaurant(Restaurant):
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         token_json = await self.get_access_token()
-        self.content = await self.get_last_messages(token_json)
-        return self.parse_menu(day)
+        token_for_url = '&'.join([f'{k}={v}' for k, v in token_json.items()])
+        messages = await self.this_week_messages(token_for_url, day)
+        menu_textual = self.find_textual_menu(messages, day)
+        if menu_textual:
+            return menu_textual
+        return await self.find_image_menu(messages, token_for_url)
 
     async def get_access_token(self):
         url = 'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials' \
@@ -193,15 +197,32 @@ class DonQuijoteRestaurant(Restaurant):
         async with self.aio_session.get(url) as resp:
             return json.loads(await resp.text())  # access token
 
-    async def get_last_messages(self, token_json):
-        url = 'https://graph.facebook.com/1540992416123114/feed?'
-        query = '&'.join([f'{k}={v}' for k, v in token_json.items()])
-        async with self.aio_session.get(url + query) as resp:
-            messages = json.loads(await resp.text())
-            for msg in messages['data']:
-                if 'OBEDOVÉ MENU' in msg['message']:
-                    return msg['message']
-            return ''
+    async def this_week_messages(self, token_for_url, day):
+        last_saturday = datetime.now() - timedelta(days=(2 + day))
+        url = 'https://graph.facebook.com/1540992416123114/feed?fields=id,message,object_id,created_time&'
+        async with self.aio_session.get(url + token_for_url) as resp:
+            messages = json.loads(await resp.text())['data']
+            return list(filter(
+                lambda msg: datetime.strptime(msg['created_time'][:10], '%Y-%m-%d') > last_saturday,
+                messages
+            ))
+
+    def find_textual_menu(self, messages, day):
+        for msg in messages:
+            if 'OBEDOVÉ MENU' in msg['message']:
+                self.content = msg['message']
+                return self.parse_menu(day)
+
+    async def find_image_menu(self, messages, token_for_url):
+        for msg in messages:
+            if 'object_id' in msg:
+                url = 'https://graph.facebook.com/{}?fields=id,images&'.format(msg['object_id'])
+                async with self.aio_session.get(url + token_for_url) as resp:
+                    fb_object = json.loads(await resp.text())
+                    menu = Menu(self.name)
+                    menu.add_item(fb_object['images'][0]['source'])
+                    return menu
+        raise ValueError('No menu found')
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -223,8 +244,12 @@ class KantinaRestaurant(Restaurant):
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         token_json = await self.get_access_token()
-        self.content = await self.get_last_messages(token_json, day)
-        return self.parse_menu(day)
+        token_for_url ='&'.join([f'{k}={v}' for k, v in token_json.items()])
+        messages = await self.this_week_messages(token_for_url, day)
+        menu_textual = self.find_textual_menu(messages, day)
+        if menu_textual:
+            return menu_textual
+        return await self.find_image_menu(messages, token_for_url)
 
     async def get_access_token(self):
         url = 'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials' \
@@ -232,15 +257,32 @@ class KantinaRestaurant(Restaurant):
         async with self.aio_session.get(url) as resp:
             return json.loads(await resp.text())  # access token
 
-    async def get_last_messages(self, token_json, day):
-        url = 'https://graph.facebook.com/1722019888053332/feed?'
-        query = '&'.join([f'{k}={v}' for k, v in token_json.items()])
-        async with self.aio_session.get(url + query) as resp:
-            messages = json.loads(await resp.text())
-            for msg in messages['data']:
-                if 'Pondelok' in msg.get('message', ''):
-                    return msg['message']
-            return ''
+    async def this_week_messages(self, token_for_url, day):
+        last_friday = datetime.now() - timedelta(days=(3 + day))
+        url = 'https://graph.facebook.com/1722019888053332/feed?fields=id,message,object_id,created_time&'
+        async with self.aio_session.get(url + token_for_url) as resp:
+            messages = json.loads(await resp.text())['data']
+            return list(filter(
+                lambda msg: datetime.strptime(msg['created_time'][:10], '%Y-%m-%d') > last_friday,
+                messages
+            ))
+
+    async def find_image_menu(self, messages, token_for_url):
+        for msg in messages:
+            if 'object_id' in msg:
+                url = 'https://graph.facebook.com/{}?fields=id,images&'.format(msg['object_id'])
+                async with self.aio_session.get(url + token_for_url) as resp:
+                    fb_object = json.loads(await resp.text())
+                    menu = Menu(self.name)
+                    menu.add_item(fb_object['images'][0]['source'])
+                    return menu
+        raise ValueError('No menu found')
+
+    def find_textual_menu(self, messages, day):
+        for msg in messages:
+            if 'Pondelok' in msg.get('message', ''):
+                self.content = msg['message']
+                return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -314,8 +356,8 @@ class GastrohouseRestaurant(Restaurant):
             raise ValueError('Can not find menu')
 
         for li in today_menu[0].find_all('li'):
-            price = float(li.find_all('div')[-1].text.strip()[:-2].replace(',', '.'))
-            menu.add_item(li.find('h3').text.strip(), price)
+            # price = float(li.find_all('div')[-1].text.strip()[:-2].replace(',', '.'))
+            menu.add_item(li.find('h3').text.strip())
 
         return menu
 
