@@ -226,7 +226,7 @@ class DonQuijoteRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        lines = self.content.splitlines()
+        lines = [line.strip() for line in self.content.splitlines() if line.strip()]
         for index, line in enumerate(lines):
             if line.strip().lower().startswith(DAY_NAMES[day]):
                 for food in lines[index+1:index+4]:
