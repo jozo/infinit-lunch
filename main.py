@@ -11,9 +11,13 @@ from raven import Client
 from restaurants import (FormattedMenus, SafeRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, DreamsRestaurant,
                          OtherRestaurant, KantinaRestaurant, GastrohouseRestaurant)
 from slack import Channel
+from slackclient import SlackClient
 
+SLACK_API_URL = 'https://slack.com/api'
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
+SLACK_LEGACY_TOKEN = os.environ.get('SLACK_LEGACY_TOKEN', None)
+SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL', None)
 SECRET_KEY = os.environ.get('SECRET_KEY', None)
 DEBUG = bool(os.environ.get('DEBUG', False))
 
@@ -45,6 +49,30 @@ async def retrieve_menus(session):
     return menus
 
 
+def create_poll():
+    candidates = [
+        'gastrohouse',
+        'quijote',
+        'dreams',
+        'kantina',
+        'bistro',
+        'chlebickovo',
+        'freshmarket',
+        'wok',
+        'salads',
+        'panda',
+        'punjabi',
+        'burger',
+    ]
+    client = SlackClient(SLACK_LEGACY_TOKEN)
+    return client.api_call(
+        'chat.command',
+        channel=SLACK_CHANNEL,
+        command='/votemeal',
+        text='new ' + ' '.join(candidates),
+    )
+
+
 async def index(request):
     if is_work_day():
         async with aiohttp.ClientSession() as session:
@@ -52,6 +80,8 @@ async def index(request):
             secret_key = request.match_info.get('secret_key')
             if should_send_to_slack(secret_key):
                 await Channel(SLACK_HOOK, session).send(menus)
+            if SLACK_LEGACY_TOKEN and SLACK_CHANNEL:
+                create_poll()
             return web.Response(text=str(menus))
     return web.Response(text='Come on Monday-Friday')
 
