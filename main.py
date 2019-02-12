@@ -13,7 +13,6 @@ from restaurants import (FormattedMenus, SafeRestaurant, BreweriaRestaurant, Don
 from slack import Channel
 from slackclient import SlackClient
 
-SLACK_API_URL = 'https://slack.com/api'
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
 SLACK_LEGACY_TOKEN = os.environ.get('SLACK_LEGACY_TOKEN', None)
