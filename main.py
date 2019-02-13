@@ -79,7 +79,7 @@ async def index(request):
             secret_key = request.match_info.get('secret_key')
             if should_send_to_slack(secret_key):
                 await Channel(SLACK_HOOK, session).send(menus)
-            if SLACK_LEGACY_TOKEN and SLACK_CHANNEL:
+            if SLACK_LEGACY_TOKEN and SLACK_CHANNEL and secret_key == SECRET_KEY:
                 create_poll()
             return web.Response(text=str(menus))
     return web.Response(text='Come on Monday-Friday')
