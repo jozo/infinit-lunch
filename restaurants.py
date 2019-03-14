@@ -393,7 +393,7 @@ class OtherRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
         self.content = None
-        self.name = 'Iné (hlasuj pomocou emoji)'
+        self.name = 'Iné'
         self.url = None
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
