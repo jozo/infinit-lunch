@@ -57,6 +57,7 @@ def create_poll():
         'freshmarket',
         'gastrohouse',
         'kantina',
+        'kari',
         'panda',
         'punjabi',
         'quijote',
