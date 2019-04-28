@@ -29,9 +29,7 @@ class TestDonQuijoteRestaurant:
 
     def test_can_find_monday_menu(self):
         menu = self.restaurant.parse_menu(day=0)
-        assert menu.foods == ['Letná minestrone',
-                              'Medovo-horčicové kuracie prsia so špargľou a hruškami, bylinková ryža',
-                              'Penne so špenátom a gorgonzolou']
+        assert menu.foods == ['250 Letná minestronje', 'Medovo-horčicové kuracie prsia so špargľou a hruškami, bylinková ryža', 'Penne so špenátom a gorgonzolou']
 
 
 class TestChannel:

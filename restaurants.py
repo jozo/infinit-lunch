@@ -98,7 +98,7 @@ class Restaurant(abc.ABC):
 
 class SafeRestaurant(Restaurant):
     """
-    Catch all exceptions so the application will not broke
+    Catch all exceptions so the application will not break
     """
 
     def __init__(self, restaurant) -> None:
