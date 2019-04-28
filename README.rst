@@ -19,7 +19,3 @@ Development
 Project is based on `asyncio` and `aiohttp`. Minimal version of Python is 3.5.
 
 Requirements are handled with `pipenv` and 'Pipfile'.
-
-```
-pipenv lock -r
-```
