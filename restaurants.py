@@ -339,7 +339,7 @@ class GastrohouseRestaurant(Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Gastrohouse a.k.a. vývarovňa Slimák (3.8€)'
+        self.name = 'Gastrohouse a.k.a. vývarovňa Slimák (4.2€)'
         self.url = 'http://gastrohouse.sk/'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
