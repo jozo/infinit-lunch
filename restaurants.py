@@ -199,8 +199,9 @@ class DonQuijoteRestaurant(Restaurant):
 
     async def this_week_messages(self, token_for_url, day):
         last_saturday = datetime.now() - timedelta(days=(2 + day))
-        url = 'https://graph.facebook.com/1540992416123114/feed?fields=id,message,object_id,created_time&'
-        async with self.aio_session.get(url + token_for_url) as resp:
+        url = 'https://graph.facebook.com/1540992416123114/feed?' \
+              'fields=id,message,created_time,attachments{media,media_type}'
+        async with self.aio_session.get(url + '&' + token_for_url) as resp:
             messages = json.loads(await resp.text())['data']
             return list(filter(
                 lambda msg: datetime.strptime(msg['created_time'][:10], '%Y-%m-%d') > last_saturday,
@@ -215,13 +216,10 @@ class DonQuijoteRestaurant(Restaurant):
 
     async def find_image_menu(self, messages, token_for_url):
         for msg in messages:
-            if 'object_id' in msg:
-                url = 'https://graph.facebook.com/{}?fields=id,images&'.format(msg['object_id'])
-                async with self.aio_session.get(url + token_for_url) as resp:
-                    fb_object = json.loads(await resp.text())
-                    menu = Menu(self.name)
-                    menu.add_item(fb_object['images'][0]['source'])
-                    return menu
+            if 'attachments' in msg and msg['attachments']['data'][0]['media_type'] == 'photo':
+                menu = Menu(self.name)
+                menu.add_item(msg['attachments']['data'][0]['media']['image']['src'])
+                return menu
         raise ValueError('No menu found')
 
     def parse_menu(self, day):
@@ -259,30 +257,28 @@ class KantinaRestaurant(Restaurant):
 
     async def this_week_messages(self, token_for_url, day):
         last_friday = datetime.now() - timedelta(days=(3 + day))
-        url = 'https://graph.facebook.com/1722019888053332/feed?fields=id,message,object_id,created_time&'
-        async with self.aio_session.get(url + token_for_url) as resp:
+        url = 'https://graph.facebook.com/1722019888053332/feed?' \
+              'fields=id,message,created_time,attachments{media,media_type}'
+        async with self.aio_session.get(url + '&' + token_for_url) as resp:
             messages = json.loads(await resp.text())['data']
             return list(filter(
                 lambda msg: datetime.strptime(msg['created_time'][:10], '%Y-%m-%d') > last_friday,
                 messages
             ))
 
-    async def find_image_menu(self, messages, token_for_url):
-        for msg in messages:
-            if 'object_id' in msg:
-                url = 'https://graph.facebook.com/{}?fields=id,images&'.format(msg['object_id'])
-                async with self.aio_session.get(url + token_for_url) as resp:
-                    fb_object = json.loads(await resp.text())
-                    menu = Menu(self.name)
-                    menu.add_item(fb_object['images'][0]['source'])
-                    return menu
-        raise ValueError('No menu found')
-
     def find_textual_menu(self, messages, day):
         for msg in messages:
             if 'Pondelok' in msg.get('message', ''):
                 self.content = msg['message']
                 return self.parse_menu(day)
+
+    async def find_image_menu(self, messages, token_for_url):
+        for msg in messages:
+            if 'attachments' in msg and msg['attachments']['data'][0]['media_type'] == 'photo':
+                menu = Menu(self.name)
+                menu.add_item(msg['attachments']['data'][0]['media']['image']['src'])
+                return menu
+        raise ValueError('No menu found')
 
     def parse_menu(self, day):
         menu = Menu(self.name)
