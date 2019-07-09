@@ -8,7 +8,7 @@ import aiohttp
 from aiohttp import web
 from raven import Client
 
-from restaurants import (FormattedMenus, SafeRestaurant, BreweriaRestaurant, DonQuijoteRestaurant, DreamsRestaurant,
+from restaurants import (FormattedMenus, SafeRestaurant, RentierRestaurant, DonQuijoteRestaurant, DreamsRestaurant,
                          OtherRestaurant, KantinaRestaurant, GastrohouseRestaurant)
 from slack import Channel
 from slackclient import SlackClient
@@ -38,6 +38,7 @@ async def retrieve_menus(session):
         SafeRestaurant(DonQuijoteRestaurant(session)).retrieve_menu(),
         SafeRestaurant(DreamsRestaurant(session)).retrieve_menu(),
         SafeRestaurant(KantinaRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(RentierRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 
