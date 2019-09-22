@@ -57,6 +57,7 @@ def create_poll():
         'dreams',
         'freshmarket',
         'gastrohouse',
+        'jelen',
         'kantina',
         'kari',
         'panda',
