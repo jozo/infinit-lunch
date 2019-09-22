@@ -42,8 +42,10 @@ class Menu:
 
     def __str__(self):
         items = ['*{}*'.format(self.restaurant_name)]
-        items += ['{}. {}{}'.format(i, food, self.format_price(price))
-                  for i, (food, price) in enumerate(zip(self.foods, self.prices), start=1)]
+        items += [
+            '{}{}'.format(food, self.format_price(price))
+            for food, price in zip(self.foods, self.prices)
+        ]
         return '\n'.join(items)
 
     def format_price(self, price):
@@ -117,63 +119,6 @@ class SafeRestaurant(Restaurant):
             return menu
 
 
-class BednarRestaurant(Restaurant):
-    def __init__(self, session) -> None:
-        super().__init__()
-        self.aio_session = session
-        self.content = None
-        self.name = 'Bednar (3.9€)'
-        self.url = 'http://bednarrestaurant.sk/new/wordpress/?page_id=62'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
-
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        groups = re.search(r'PONDELOK(.*)UTOROK(.*)STREDA(.*)ŠTVRTOK(.*)PIATOK(.*)BEDNAR',
-                           self.content.text,
-                           re.DOTALL
-                           ).groups()
-        for food in groups[day].split('\n'):
-            if food.strip():
-                food = re.findall(r'\s*-\s*(.*)', food.strip())[0]
-                menu.add_item(food)
-        return menu
-
-
-class BreweriaRestaurant(Restaurant):
-    def __init__(self, session) -> None:
-        super().__init__()
-        self.aio_session = session
-        self.content = None
-        self.name = 'Breweria'
-        self.url = 'http://breweria.sk/slimak/menu/denne-menu/'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
-
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        try:
-            day_elements = self.content.select('.tabs__pane')[day].select('p')
-            menu.add_item(self.clean_food_name(day_elements[0].text))
-            for price, food in zip(day_elements[1::2], day_elements[2::2]):
-                menu.add_item(self.clean_food_name(food.text), self.clean_price(price.text))
-        except IndexError as ex:
-            menu.add_item('Problem with parsing - {}'.format(ex))
-        return menu
-
-    def clean_food_name(self, name):
-        return re.findall(r'\s*[lg]+\.\s+(.*)', name)[0]
-
-    def clean_price(self, price):
-        return float(re.findall(r'(\d,\d{2})', price)[0].replace(',', '.'))
-
-
 class DonQuijoteRestaurant(Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
@@ -238,66 +183,18 @@ class KantinaRestaurant(Restaurant):
         self.aio_session = session
         self.content = None
         self.name = 'Kantína (4.8€ / 4€ bez polievky)'
-        self.url = 'https://www.facebook.com/onlinechef.sk/'
+        self.url = 'https://restauracie.sme.sk/restauracia/kantina-vsetko-okolo-jedla_10102-bratislava_2983/denne-menu'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
-        token_json = await self.get_access_token()
-        token_for_url ='&'.join([f'{k}={v}' for k, v in token_json.items()])
-        messages = await self.this_week_messages(token_for_url, day)
-        menu_textual = self.find_textual_menu(messages, day)
-        if menu_textual:
-            return menu_textual
-        return await self.find_image_menu(messages, token_for_url)
-
-    async def get_access_token(self):
-        url = 'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials' \
-              '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET)
-        async with self.aio_session.get(url) as resp:
-            return json.loads(await resp.text())  # access token
-
-    async def this_week_messages(self, token_for_url, day):
-        last_friday = datetime.now() - timedelta(days=(3 + day))
-        url = 'https://graph.facebook.com/1722019888053332/feed?' \
-              'fields=id,message,created_time,attachments{media,media_type}'
-        async with self.aio_session.get(url + '&' + token_for_url) as resp:
-            messages = json.loads(await resp.text())['data']
-            return list(filter(
-                lambda msg: datetime.strptime(msg['created_time'][:10], '%Y-%m-%d') > last_friday,
-                messages
-            ))
-
-    def find_textual_menu(self, messages, day):
-        for msg in messages:
-            if 'Pondelok' in msg.get('message', ''):
-                self.content = msg['message']
-                return self.parse_menu(day)
-
-    async def find_image_menu(self, messages, token_for_url):
-        for msg in messages:
-            if 'attachments' in msg and msg['attachments']['data'][0]['media_type'] == 'photo':
-                menu = Menu(self.name)
-                menu.add_item(msg['attachments']['data'][0]['media']['image']['src'])
-                return menu
-        raise ValueError('No menu found')
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        all_days_menu = self._parse_all_days()
-        selected_day_menu = self._parse_day(all_days_menu[day])
-        for food in selected_day_menu:
-            menu.add_item(food)
+        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+            menu.add_item(item.get_text(strip=True))
         return menu
-
-    def _parse_all_days(self):
-        res = re.search(r'.*\s*Pondelok\s*\n(.*)Utorok\s*\n(.*)Streda\s*\n(.*)Štvrtok\s*\n(.*)Piatok\s*\n(.*)',
-                        self.content,
-                        re.DOTALL | re.MULTILINE)
-        if res:
-            return res.groups()
-        raise ValueError('Can not parse menu')
-
-    def _parse_day(self, content):
-        return [x.strip() for x in content.split('\n') if x.strip()]
 
 
 class RentierRestaurant(Restaurant):
@@ -369,6 +266,26 @@ class DreamsRestaurant(Restaurant):
         return menu
 
 
+class MenuUJelena(Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'Menu u Jeleňa'
+        self.url = 'https://restauracie.sme.sk/restauracia/menu-u-jelena_9787-nove-mesto_2653/denne-menu'
+
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+            menu.add_item(item.get_text(strip=True))
+        return menu
+
+
 class GastrohouseRestaurant(Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
@@ -394,33 +311,6 @@ class GastrohouseRestaurant(Restaurant):
             # price = float(li.find_all('div')[-1].text.strip()[:-2].replace(',', '.'))
             menu.add_item(li.find('h3').text.strip())
 
-        return menu
-
-
-class JarosovaRestaurant(Restaurant):
-    def __init__(self, session) -> None:
-        super().__init__()
-        self.aio_session = session
-        self.content = None
-        self.name = 'Jedáleň Jarošová (3.79€)'
-        self.url = 'http://vasestravovanie.sk/jedalny-listok-sav/'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
-
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        try:
-            table = self.content.find('table')
-            rows = [td for td in table.select('tbody tr td') if td.attrs.get('colspan') in ('5', '6')]
-            day_size = len(rows) // 5
-            idx = day_size * day
-            for td in rows[idx:idx+day_size]:
-                menu.add_item(td.text)
-        except ValueError as ex:
-            menu.add_item(str(ex))
         return menu
 
 
