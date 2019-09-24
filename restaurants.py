@@ -326,7 +326,7 @@ class OtherRestaurant(Restaurant):
         menu.add_item(':car: Bistro.sk')
         menu.add_item(':dancer: Casa Inka')
         menu.add_item(':baguette_bread: Chlebíčkovo')
-        menu.add_item(':man: Cigipanda:skin-tone-5:')
+        menu.add_item(':man::skin-tone-5: Cigipanda')
         menu.add_item(':watermelon: Freshmarket')
         menu.add_item(':ramen: Lotus Wok')
         menu.add_item(':green_salad: PA&STE Salads')
