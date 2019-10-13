@@ -203,34 +203,27 @@ class RentierRestaurant(Restaurant):
         self.url = 'https://www.facebook.com/RentierRestauracia/'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
-        token_json = await self.get_access_token()
-        token_for_url ='&'.join([f'{k}={v}' for k, v in token_json.items()])
-        messages = await self.today_message(token_for_url)
-        return await self.find_image_menu(messages, token_for_url)
-
-    async def get_access_token(self):
-        url = 'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials' \
-              '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET)
+        url = 'https://m.facebook.com/RentierRestauracia/'
         async with self.aio_session.get(url) as resp:
-            return json.loads(await resp.text())  # access token
+            page = BeautifulSoup(await resp.text(), 'html.parser')
+        recent = page.find(id='recent')
+        # Only divs with posts should have this attribute.
+        latest_post = recent.find('div', style=True).parent.parent
+        post_url = latest_post.find(
+            'a', string=re.compile('(Full Story|Celý príspevok)')
+        )['href']
+        async with self.aio_session.get('https://m.facebook.com' + post_url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+        return self.parse_menu(day)
 
-    async def today_message(self, token_for_url):
-        url = 'https://graph.facebook.com/RentierRestauracia/feed?' \
-              'fields=id,message,created_time,attachments{media,media_type}'
-        async with self.aio_session.get(url + '&' + token_for_url) as resp:
-            messages = json.loads(await resp.text())['data']
-            return list(filter(
-                lambda msg: datetime.strptime(msg['created_time'][:10], '%Y-%m-%d').date() == datetime.today().date(),
-                messages
-            ))
-
-    async def find_image_menu(self, messages, token_for_url):
-        for msg in messages:
-            if 'attachments' in msg and msg['attachments']['data'][0]['media_type'] == 'photo':
-                menu = Menu(self.name)
-                menu.add_item(msg['attachments']['data'][0]['media']['image']['src'])
-                return menu
-        raise ValueError('No menu found')
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        menu.add_item(
+            self.content.find(
+                'a', string=re.compile('(View Full Size|Zobraziť v plnej veľkosti)')
+            )['href']
+        )
+        return menu
 
 
 class DreamsRestaurant(Restaurant):
