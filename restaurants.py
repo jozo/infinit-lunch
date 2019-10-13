@@ -2,7 +2,7 @@ import json
 import os
 import re
 import abc
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from bs4 import BeautifulSoup
 
@@ -128,51 +128,48 @@ class DonQuijoteRestaurant(Restaurant):
         self.url = 'https://www.facebook.com/Don-Quijote-1540992416123114/'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
-        token_json = await self.get_access_token()
-        token_for_url = '&'.join([f'{k}={v}' for k, v in token_json.items()])
-        messages = await self.this_week_messages(token_for_url, day)
-        menu_textual = self.find_textual_menu(messages, day)
+        messages = await self.this_week_messages(day)
+        menu_textual = await self.find_textual_menu(messages, day)
         if menu_textual:
             return menu_textual
-        return await self.find_image_menu(messages, token_for_url)
+        # TODO: Fallback to image.
+        # return await self.find_image_menu(messages)
 
-    async def get_access_token(self):
-        url = 'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials' \
-              '&client_id={}&client_secret={}'.format(FB_APP_ID, FB_APP_SECRET)
+    async def this_week_messages(self, day):
+        url = 'https://m.facebook.com/Don-Quijote-1540992416123114/'
         async with self.aio_session.get(url) as resp:
-            return json.loads(await resp.text())  # access token
+            page = BeautifulSoup(await resp.text(), 'html.parser')
+            recent = page.find(id='recent')
+            # Only divs with posts should have this attribute.
+            messages = recent.find_all('div', style=True)
+            # TODO: Filter only this week's messages.
+            return messages
 
-    async def this_week_messages(self, token_for_url, day):
-        last_saturday = datetime.now() - timedelta(days=(2 + day))
-        url = 'https://graph.facebook.com/1540992416123114/feed?' \
-              'fields=id,message,created_time,attachments{media,media_type}'
-        async with self.aio_session.get(url + '&' + token_for_url) as resp:
-            messages = json.loads(await resp.text())['data']
-            return list(filter(
-                lambda msg: datetime.strptime(msg['created_time'][:10], '%Y-%m-%d') > last_saturday,
-                messages
-            ))
-
-    def find_textual_menu(self, messages, day):
+    async def find_textual_menu(self, messages, day):
         for msg in messages:
-            if 'OBEDOVÉ MENU' in msg['message']:
-                self.content = msg['message']
+            if 'OBEDOVÉ MENU' in msg.get_text():
+                post_url = msg.find('a', string=re.compile('(More|Viac)'))['href']
+                async with self.aio_session.get('https://m.facebook.com' + post_url) as resp:
+                    page = BeautifulSoup(await resp.text(), 'html.parser')
+                    self.content = [
+                        p.get_text(strip=True)
+                        for p in page.find(id='m_story_permalink_view').find_all('p')
+                    ]
                 return self.parse_menu(day)
 
-    async def find_image_menu(self, messages, token_for_url):
-        for msg in messages:
-            if 'attachments' in msg and msg['attachments']['data'][0]['media_type'] == 'photo':
-                menu = Menu(self.name)
-                menu.add_item(msg['attachments']['data'][0]['media']['image']['src'])
-                return menu
-        raise ValueError('No menu found')
+    # async def find_image_menu(self, messages):
+    #     for msg in messages:
+    #         if 'attachments' in msg and msg['attachments']['data'][0]['media_type'] == 'photo':
+    #             menu = Menu(self.name)
+    #             menu.add_item(msg['attachments']['data'][0]['media']['image']['src'])
+    #             return menu
+    #     raise ValueError('No menu found')
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        lines = [line.strip() for line in self.content.splitlines() if line.strip()]
-        for index, line in enumerate(lines):
+        for index, line in enumerate(self.content):
             if line.strip().lower().startswith(DAY_NAMES[day]):
-                for food in lines[index+1:index+4]:
+                for food in self.content[index+1:index+4]:
                     menu.add_item(food)
                 return menu
 
