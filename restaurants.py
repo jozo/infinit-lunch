@@ -293,7 +293,7 @@ class GastrohouseRestaurant(Restaurant):
         menu = Menu(self.name)
         daily_menu = self.content.select_one('section.denne-menu').find_all('section')
         today_menu = [section for section in daily_menu
-                      if section.find('h2').text.rstrip().lower().endswith(DAY_NAMES[day])]
+                      if section.find('h2').text.rstrip().lower().startswith(DAY_NAMES[day])]
         if not today_menu:
             raise ValueError('Can not find menu')
 
