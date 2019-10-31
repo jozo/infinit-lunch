@@ -1,7 +1,7 @@
-import json
+import abc
+import logging
 import os
 import re
-import abc
 from datetime import datetime
 
 from bs4 import BeautifulSoup
@@ -28,6 +28,8 @@ DAY_NAMES2 = [              # vysklonovane nazvy
     'sobotu',
     'nedeľu',
 ]
+
+logger = logging.getLogger(__name__)
 
 
 class Menu:
@@ -113,6 +115,7 @@ class SafeRestaurant(Restaurant):
         except:
             from main import sentry_client
             sentry_client.captureException()
+            logger.exception('Error scraping %s', self.restaurant.name)
 
             menu = Menu(self.restaurant.name)
             menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.restaurant.url))
@@ -209,10 +212,8 @@ class RentierRestaurant(Restaurant):
         recent = page.find(id='recent')
         # Only divs with posts should have this attribute.
         latest_post = recent.find('div', style=True).parent.parent
-        post_url = latest_post.find(
-            'a', string=re.compile('(Full Story|Celý príspevok)')
-        )['href']
-        async with self.aio_session.get('https://m.facebook.com' + post_url) as resp:
+        photo_path = latest_post.find('a', href=re.compile('.*/photos/.*'))['href']
+        async with self.aio_session.get('https://m.facebook.com' + photo_path) as resp:
             self.content = BeautifulSoup(await resp.text(), 'html.parser')
         return self.parse_menu(day)
 
