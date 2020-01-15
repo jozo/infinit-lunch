@@ -188,7 +188,7 @@ class KantinaRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         async with self.aio_session.get(self.url) as resp:
             self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
+        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -203,27 +203,20 @@ class RentierRestaurant(Restaurant):
         self.aio_session = session
         self.content = None
         self.name = 'Rentier (5.99€)'
-        self.url = 'https://www.facebook.com/RentierRestauracia/'
+        self.url = 'https://menucka.sk/denne-menu/bratislava/rentier-pizzeria-restaurant'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
-        url = 'https://m.facebook.com/RentierRestauracia/'
-        async with self.aio_session.get(url) as resp:
-            page = BeautifulSoup(await resp.text(), 'html.parser')
-        recent = page.find(id='recent')
-        # Only divs with posts should have this attribute.
-        latest_post = recent.find('div', style=True).parent.parent
-        photo_path = latest_post.find('a', href=re.compile('.*/photos/.*'))['href']
-        async with self.aio_session.get('https://m.facebook.com' + photo_path) as resp:
+        async with self.aio_session.get(self.url) as resp:
             self.content = BeautifulSoup(await resp.text(), 'html.parser')
         return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        menu.add_item(
-            self.content.find(
-                'a', string=re.compile('(View Full Size|Zobraziť v plnej veľkosti)')
-            )['href']
-        )
+        container = self.content.find(id='restaurant-actual-menu-id-1953')
+        for item in container.find_all(class_='col-xs-10'):
+            text = item.get_text(strip=True)
+            if text:
+                menu.add_item(text)
         return menu
 
 
@@ -238,7 +231,7 @@ class DreamsRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         async with self.aio_session.get(self.url) as resp:
             self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
+        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -268,7 +261,7 @@ class MenuUJelena(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         async with self.aio_session.get(self.url) as resp:
             self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
+        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -288,7 +281,7 @@ class GastrohouseRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         async with self.aio_session.get(self.url) as resp:
             self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
+        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
