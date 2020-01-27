@@ -128,53 +128,20 @@ class DonQuijoteRestaurant(Restaurant):
         self.aio_session = session
         self.content = None
         self.name = 'Don Quijote (5.5€)'
-        self.url = 'https://www.facebook.com/Don-Quijote-1540992416123114/'
+        self.url = 'https://restauracie.sme.sk/restauracia/don-quijote_7436-nove-mesto_2653/denne-menu'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
-        messages = await self.this_week_messages(day)
-        menu_textual = await self.find_textual_menu(messages, day)
-        if menu_textual:
-            return menu_textual
-        # TODO: Fallback to image.
-        # return await self.find_image_menu(messages)
-
-    async def this_week_messages(self, day):
-        url = 'https://m.facebook.com/Don-Quijote-1540992416123114/'
-        async with self.aio_session.get(url) as resp:
-            page = BeautifulSoup(await resp.text(), 'html.parser')
-            recent = page.find(id='recent')
-            # Only divs with posts should have this attribute.
-            messages = recent.find_all('div', style=True)
-            # TODO: Filter only this week's messages.
-            return messages
-
-    async def find_textual_menu(self, messages, day):
-        for msg in messages:
-            if 'OBEDOVÉ MENU' in msg.get_text():
-                post_url = msg.find('a', string=re.compile('(More|Viac)'))['href']
-                async with self.aio_session.get('https://m.facebook.com' + post_url) as resp:
-                    page = BeautifulSoup(await resp.text(), 'html.parser')
-                    self.content = [
-                        p.get_text(strip=True)
-                        for p in page.find(id='m_story_permalink_view').find_all('p')
-                    ]
-                return self.parse_menu(day)
-
-    # async def find_image_menu(self, messages):
-    #     for msg in messages:
-    #         if 'attachments' in msg and msg['attachments']['data'][0]['media_type'] == 'photo':
-    #             menu = Menu(self.name)
-    #             menu.add_item(msg['attachments']['data'][0]['media']['image']['src'])
-    #             return menu
-    #     raise ValueError('No menu found')
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        for index, line in enumerate(self.content):
-            if line.strip().lower().startswith(DAY_NAMES[day]):
-                for food in self.content[index+1:index+4]:
-                    menu.add_item(food)
-                return menu
+        container = self.content.find(class_='dnesne_menu')
+        # First line currently contains only : for some reason.
+        for item in container.find_all(class_='jedlo_polozka')[1:]:
+            menu.add_item(item.get_text(strip=True))
+        return menu
 
 
 class KantinaRestaurant(Restaurant):
