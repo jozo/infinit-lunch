@@ -180,6 +180,9 @@ class RentierRestaurant(Restaurant):
     def parse_menu(self, day):
         menu = Menu(self.name)
         container = self.content.find(id='restaurant-actual-menu-id-1953')
+        if not container:
+            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.restaurant.url))
+            return menu
         for item in container.find_all(class_='col-xs-10'):
             text = item.get_text(strip=True)
             if text:
