@@ -159,7 +159,11 @@ class KantinaRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+        today_menu_element = self.content.find(class_='dnesne_menu')
+        if not today_menu_element:
+            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
+            return menu
+        for item in today_menu_element.find_all(class_='jedlo_polozka'):
             menu.add_item(item.get_text(strip=True))
         return menu
 
@@ -181,7 +185,7 @@ class RentierRestaurant(Restaurant):
         menu = Menu(self.name)
         container = self.content.find(id='restaurant-actual-menu-id-1953')
         if not container:
-            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.restaurant.url))
+            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
             return menu
         for item in container.find_all(class_='col-xs-10'):
             text = item.get_text(strip=True)
