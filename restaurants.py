@@ -239,7 +239,11 @@ class MenuUJelena(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+        element = self.content.find(class_='dnesne_menu')
+        if not element:
+            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
+            return menu
+        for item in element.find_all(class_='jedlo_polozka'):
             menu.add_item(item.get_text(strip=True))
         return menu
 
