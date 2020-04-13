@@ -138,6 +138,9 @@ class DonQuijoteRestaurant(Restaurant):
     def parse_menu(self, day):
         menu = Menu(self.name)
         container = self.content.find(class_='dnesne_menu')
+        if not container:
+            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
+            return menu
         # First line currently contains only : for some reason.
         for item in container.find_all(class_='jedlo_polozka')[1:]:
             menu.add_item(item.get_text(strip=True))
