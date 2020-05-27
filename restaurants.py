@@ -171,13 +171,13 @@ class KantinaRestaurant(Restaurant):
         return menu
 
 
-class RentierRestaurant(Restaurant):
+class PlzenskaBranaRestaurant(Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Rentier (5.99€)'
-        self.url = 'https://menucka.sk/denne-menu/bratislava/rentier-pizzeria-restaurant'
+        self.name = 'Plzenská brána (5.70)'
+        self.url = 'https://menucka.sk/denne-menu/bratislava/plzenska-brana'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         async with self.aio_session.get(self.url) as resp:
@@ -186,7 +186,7 @@ class RentierRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        container = self.content.find(id='restaurant-actual-menu-id-1953')
+        container = self.content.find(id='restaurant-actual-menu-id-2024')
         if not container:
             menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
             return menu

@@ -8,7 +8,7 @@ import aiohttp
 from aiohttp import web
 from raven import Client
 
-from restaurants import (FormattedMenus, SafeRestaurant, RentierRestaurant,
+from restaurants import (FormattedMenus, SafeRestaurant, PlzenskaBranaRestaurant,
                          DonQuijoteRestaurant, DreamsRestaurant,
                          OtherRestaurant, KantinaRestaurant, GastrohouseRestaurant,
                          MenuUJelena)
@@ -38,7 +38,7 @@ async def retrieve_menus(session):
         SafeRestaurant(DreamsRestaurant(session)).retrieve_menu(),
         SafeRestaurant(MenuUJelena(session)).retrieve_menu(),
         SafeRestaurant(KantinaRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(RentierRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(PlzenskaBranaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 
