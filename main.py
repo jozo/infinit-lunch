@@ -55,6 +55,7 @@ def create_poll():
         'bezzinka',
         'mango',
         'punjabi',
+        'freshmarket',
     ]
     client = SlackClient(SLACK_LEGACY_TOKEN)
     return client.api_call(

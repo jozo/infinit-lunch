@@ -345,11 +345,6 @@ class CasaInkaRestaurant(Restaurant):
         self.url = 'http://www.casa-inka.sk/index.php?page=jedalny&kategoria=menu'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
-
-    def parse_menu(self, day):
         raise NotImplementedError
 
 
