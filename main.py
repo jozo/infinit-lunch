@@ -8,10 +8,9 @@ import aiohttp
 from aiohttp import web
 from raven import Client
 
-from restaurants import (FormattedMenus, SafeRestaurant, PlzenskaBranaRestaurant,
-                         DonQuijoteRestaurant, DreamsRestaurant,
-                         OtherRestaurant, KantinaRestaurant, GastrohouseRestaurant,
-                         MenuUJelena)
+from restaurants import (FormattedMenus, SafeRestaurant, OtherRestaurant,
+                         BezzinkaRestaurant, AvalonRestaurant, TOTORestaurant,
+                         CasaInkaRestaurant)
 from slack import Channel
 from slackclient import SlackClient
 
@@ -33,12 +32,10 @@ def should_send_to_slack(secret_key):
 
 async def retrieve_menus(session):
     futures = [
-        SafeRestaurant(GastrohouseRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(DonQuijoteRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(DreamsRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(MenuUJelena(session)).retrieve_menu(),
-        SafeRestaurant(KantinaRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(PlzenskaBranaRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(TOTORestaurant(session)).retrieve_menu(),
+        SafeRestaurant(AvalonRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(BezzinkaRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 
@@ -52,20 +49,13 @@ async def retrieve_menus(session):
 def create_poll():
     candidates = [
         'bistro',
-        'burger',
-        'chlebickovo',
-        'dreams',
-        'freshmarket',
-        'gastrohouse',
-        'jelen',
-        'kantina',
-        'kari',
-        'panda',
+        'toto',
+        'avalon',
+        'casa',
+        'bezzinka',
+        'mango',
         'punjabi',
-        'quijote',
-        'rentier',
-        'salads',
-        'wok',
+        'freshmarket',
     ]
     client = SlackClient(SLACK_LEGACY_TOKEN)
     return client.api_call(

@@ -4,7 +4,7 @@ import os
 import re
 from datetime import datetime
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, element
 
 FB_APP_ID = os.environ.get('FB_APP_ID', None)
 FB_APP_SECRET = os.environ.get('FB_APP_SECRET', None)
@@ -112,6 +112,10 @@ class SafeRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         try:
             return await self.restaurant.retrieve_menu(day)
+        except NotImplementedError:
+            menu = Menu(self.restaurant.name)
+            menu.add_item('Check menu yourself on {}'.format(self.restaurant.url))
+            return menu
         except:
             from main import sentry_client
             sentry_client.captureException()
@@ -279,6 +283,91 @@ class GastrohouseRestaurant(Restaurant):
         return menu
 
 
+class TOTORestaurant(Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'TOTO (4.9€ / 4.2€ bez polievky / 6.2€ extra menu / 7.4€ business menu)'
+        self.url = 'http://www.totorestaurant.sk/'
+
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        date_div = self.content.select('div.date')[day]
+
+        for sibling in date_div.next_siblings:
+            if isinstance(sibling, element.NavigableString):
+                continue
+            if sibling.name in ['h2', 'div']:
+                break
+            text = sibling.text.strip()
+            if text:
+                menu.add_item(text)
+
+        return menu
+
+
+class AvalonRestaurant(Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'Avalon'
+        self.url = 'https://avalonrestaurant.sk/denne-menu/'
+
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        today_menu = self.content.select('section.article__content')[day]
+        for p in today_menu.find_all('p'):
+            text = p.text.strip()
+            if text:
+                menu.add_item(text)
+
+        return menu
+
+
+class CasaInkaRestaurant(Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'Casa Inka (5.5€ / 6€ špecialita)'
+        self.url = 'http://www.casa-inka.sk/index.php?page=jedalny&kategoria=menu'
+
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        raise NotImplementedError
+
+
+class BezzinkaRestaurant(Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'Bezzinka (4.5€)'
+        self.url = 'https://restauracie.sme.sk/restauracia/bezzinka_265-ruzinov_2980/denne-menu'
+
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            return self.parse_menu(day)
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+            menu.add_item(item.get_text(strip=True))
+        return menu
+
+
 class OtherRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
@@ -289,15 +378,9 @@ class OtherRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
         menu.add_item(':car: Bistro.sk')
-        menu.add_item(':dancer: Casa Inka')
-        menu.add_item(':baguette_bread: Chlebíčkovo')
+        menu.add_item(':ramen: Mango')
         menu.add_item(':man::skin-tone-5: Cigipanda')
         menu.add_item(':watermelon: Freshmarket')
-        menu.add_item(':ramen: Lotus Wok')
-        menu.add_item(':green_salad: PA&STE Salads')
-        menu.add_item(':panda_face: Panda (6.3€)')
         menu.add_item(':man_with_turban: Punjabi Dhaba')
-        menu.add_item(':hamburger: Strýko Burger')
-        menu.add_item(':wedding: Svadby a Kari')
         menu.add_item(':middle_finger: Hladovka')
         return menu
