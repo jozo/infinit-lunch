@@ -318,7 +318,7 @@ class AvalonRestaurant(Restaurant):
         self.aio_session = session
         self.content = None
         self.name = 'Avalon'
-        self.url = 'https://avalonrestaurant.sk/denne-menu/'
+        self.url = 'https://restauracie.sme.sk/restauracia/avalon-restauracia_174-ruzinov_2980/denne-menu'
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         async with self.aio_session.get(self.url) as resp:
@@ -327,12 +327,8 @@ class AvalonRestaurant(Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        today_menu = self.content.select('section.article__content')[day]
-        for p in today_menu.find_all('p'):
-            text = p.text.strip()
-            if text:
-                menu.add_item(text)
-
+        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+            menu.add_item(item.get_text(strip=True))
         return menu
 
 
