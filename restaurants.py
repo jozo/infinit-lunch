@@ -126,7 +126,22 @@ class SafeRestaurant(Restaurant):
             return menu
 
 
-class DonQuijoteRestaurant(Restaurant):
+class StandardRetrieveMenuMixin:
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        async with self.aio_session.get(self.url) as resp:
+            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+        return self.parse_menu(day)
+
+
+class SMERestaurantMixin:
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+            menu.add_item(item.get_text(strip=True))
+        return menu
+
+
+class DonQuijoteRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
@@ -134,24 +149,8 @@ class DonQuijoteRestaurant(Restaurant):
         self.name = 'Don Quijote (5.5€)'
         self.url = 'https://restauracie.sme.sk/restauracia/don-quijote_7436-nove-mesto_2653/denne-menu'
 
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-        return self.parse_menu(day)
 
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        container = self.content.find(class_='dnesne_menu')
-        if not container:
-            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
-            return menu
-        # First line currently contains only : for some reason.
-        for item in container.find_all(class_='jedlo_polozka')[1:]:
-            menu.add_item(item.get_text(strip=True))
-        return menu
-
-
-class KantinaRestaurant(Restaurant):
+class KantinaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
@@ -159,34 +158,14 @@ class KantinaRestaurant(Restaurant):
         self.name = 'Kantína (4.8€ / 4€ bez polievky)'
         self.url = 'https://restauracie.sme.sk/restauracia/kantina-vsetko-okolo-jedla_10102-bratislava_2983/denne-menu'
 
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-        return self.parse_menu(day)
 
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        today_menu_element = self.content.find(class_='dnesne_menu')
-        if not today_menu_element:
-            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
-            return menu
-        for item in today_menu_element.find_all(class_='jedlo_polozka'):
-            menu.add_item(item.get_text(strip=True))
-        return menu
-
-
-class PlzenskaBranaRestaurant(Restaurant):
+class PlzenskaBranaRestaurant(StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = 'Plzenská brána (5.70)'
         self.url = 'https://menucka.sk/denne-menu/bratislava/plzenska-brana'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -201,18 +180,13 @@ class PlzenskaBranaRestaurant(Restaurant):
         return menu
 
 
-class DreamsRestaurant(Restaurant):
+class DreamsRestaurant(StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = 'Dream\'s'
         self.url = 'http://www.dreams-res.sk/menu/daily_menu_sk.php'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -231,7 +205,7 @@ class DreamsRestaurant(Restaurant):
         return menu
 
 
-class MenuUJelena(Restaurant):
+class MenuUJelena(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
@@ -239,34 +213,14 @@ class MenuUJelena(Restaurant):
         self.name = 'Menu u Jeleňa'
         self.url = 'https://restauracie.sme.sk/restauracia/menu-u-jelena_9787-nove-mesto_2653/denne-menu'
 
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-        return self.parse_menu(day)
 
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        element = self.content.find(class_='dnesne_menu')
-        if not element:
-            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
-            return menu
-        for item in element.find_all(class_='jedlo_polozka'):
-            menu.add_item(item.get_text(strip=True))
-        return menu
-
-
-class GastrohouseRestaurant(Restaurant):
+class GastrohouseRestaurant(StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = 'Gastrohouse a.k.a. vývarovňa Slimák (4.2€)'
         self.url = 'http://gastrohouse.sk/'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-        return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -283,18 +237,13 @@ class GastrohouseRestaurant(Restaurant):
         return menu
 
 
-class TOTORestaurant(Restaurant):
+class TOTORestaurant(StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = 'TOTO (4.9€ / 4.2€ bez polievky / 6.2€ extra menu / 7.4€ business menu)'
         self.url = 'http://www.totorestaurant.sk/'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
 
     def parse_menu(self, day):
         menu = Menu(self.name)
@@ -312,24 +261,13 @@ class TOTORestaurant(Restaurant):
         return menu
 
 
-class AvalonRestaurant(Restaurant):
+class AvalonRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = 'Avalon'
         self.url = 'https://restauracie.sme.sk/restauracia/avalon-restauracia_174-ruzinov_2980/denne-menu'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
-
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
-            menu.add_item(item.get_text(strip=True))
-        return menu
 
 
 class CasaInkaRestaurant(Restaurant):
@@ -344,24 +282,13 @@ class CasaInkaRestaurant(Restaurant):
         raise NotImplementedError
 
 
-class BezzinkaRestaurant(Restaurant):
+class BezzinkaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = 'Bezzinka (4.5€)'
         self.url = 'https://restauracie.sme.sk/restauracia/bezzinka_265-ruzinov_2980/denne-menu'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
-            return self.parse_menu(day)
-
-    def parse_menu(self, day):
-        menu = Menu(self.name)
-        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
-            menu.add_item(item.get_text(strip=True))
-        return menu
 
 
 class OtherRestaurant(Restaurant):
