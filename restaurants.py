@@ -2,7 +2,7 @@ import abc
 import logging
 import os
 import re
-from datetime import datetime
+from datetime import datetime, date, timedelta
 
 from bs4 import BeautifulSoup, element
 
@@ -291,6 +291,20 @@ class BezzinkaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaura
         self.url = 'https://restauracie.sme.sk/restauracia/bezzinka_265-ruzinov_2980/denne-menu'
 
 
+class OlivaRestaurant(Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'Oliva'
+        today = date.today()
+        monday = today - timedelta(days=today.weekday())
+        self.url = f'https://www.hotel-premium.sk/files/hotel/downloads/{monday:%y%m%d}_Dobre_obedy.pdf'
+
+    async def retrieve_menu(self, day=TODAY) -> Menu:
+        raise NotImplementedError
+
+
 class OtherRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
@@ -302,8 +316,6 @@ class OtherRestaurant(Restaurant):
         menu = Menu(self.name)
         menu.add_item(':car: Bistro.sk')
         menu.add_item(':ramen: Mango')
-        menu.add_item(':man::skin-tone-5: Cigipanda')
         menu.add_item(':watermelon: Freshmarket')
-        menu.add_item(':man_with_turban: Punjabi Dhaba')
         menu.add_item(':middle_finger: Hladovka')
         return menu

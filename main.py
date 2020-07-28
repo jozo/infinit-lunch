@@ -10,7 +10,7 @@ from raven import Client
 
 from restaurants import (FormattedMenus, SafeRestaurant, OtherRestaurant,
                          BezzinkaRestaurant, AvalonRestaurant, TOTORestaurant,
-                         CasaInkaRestaurant)
+                         CasaInkaRestaurant, OlivaRestaurant)
 from slack import Channel
 from slackclient import SlackClient
 
@@ -34,6 +34,7 @@ async def retrieve_menus(session):
     futures = [
         SafeRestaurant(TOTORestaurant(session)).retrieve_menu(),
         SafeRestaurant(AvalonRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(OlivaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(BezzinkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OtherRestaurant()).retrieve_menu(),
