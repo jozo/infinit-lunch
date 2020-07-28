@@ -49,14 +49,14 @@ async def retrieve_menus(session):
 
 def create_poll():
     candidates = [
-        'bistro',
-        'toto',
         'avalon',
-        'casa',
         'bezzinka',
-        'mango',
-        'punjabi',
+        'bistro',
+        'casa',
         'freshmarket',
+        'mango',
+        'oliva',
+        'toto',
     ]
     client = SlackClient(SLACK_LEGACY_TOKEN)
     return client.api_call(
