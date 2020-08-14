@@ -54,6 +54,7 @@ def create_poll():
         'bigger',
         'bistro',
         'casa',
+        'chefstreet',
         'freshmarket',
         'hladovka',
         'mango',

@@ -317,6 +317,7 @@ class OtherRestaurant(Restaurant):
         menu.add_item(':car: Bistro.sk')
         menu.add_item(':ramen: Mango')
         menu.add_item(':hamburger: Bigger')
+        menu.add_item(':male-cook: Chefstreet')
         menu.add_item(':watermelon: Freshmarket')
         menu.add_item(':middle_finger: Hladovka')
         return menu
