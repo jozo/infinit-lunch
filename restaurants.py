@@ -75,7 +75,7 @@ class FormattedMenus:
 
     def format_menus(self):
         self.formatted = [self.add_header(self.menus[0])]
-        self.formatted += [str(m) for m in self.menus[1:]]
+        self.formatted += sorted(map(str, self.menus[1:]))
 
     def add_header(self, menu):
         return "*Obedy v {} {}*\n\n{}".format(DAY_NAMES2[self.today.weekday()],
