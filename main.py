@@ -38,10 +38,10 @@ async def retrieve_menus(session):
         SafeRestaurant(BezzinkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CityCantinaRosumRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 
-    menus = []
+    # Add list of other restaurants first, will be in header.
+    menus = [await SafeRestaurant(OtherRestaurant()).retrieve_menu()]
     for future in asyncio.as_completed(futures):
         menus.append(await future)
 
