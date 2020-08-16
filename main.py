@@ -10,7 +10,7 @@ from raven import Client
 
 from restaurants import (FormattedMenus, SafeRestaurant, OtherRestaurant,
                          BezzinkaRestaurant, AvalonRestaurant, TOTORestaurant,
-                         CasaInkaRestaurant, OlivaRestaurant)
+                         CasaInkaRestaurant, OlivaRestaurant, CityCantinaRosumRestaurant)
 from slack import Channel
 from slackclient import SlackClient
 
@@ -37,6 +37,7 @@ async def retrieve_menus(session):
         SafeRestaurant(OlivaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(BezzinkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(CityCantinaRosumRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OtherRestaurant()).retrieve_menu(),
     ]
 
@@ -53,6 +54,7 @@ def create_poll():
         'bezzinka',
         'bigger',
         'bistro',
+        'cantina',
         'casa',
         'chefstreet',
         'freshmarket',

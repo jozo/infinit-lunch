@@ -305,6 +305,35 @@ class OlivaRestaurant(Restaurant):
         raise NotImplementedError
 
 
+class CityCantinaRosumRestaurant(StandardRetrieveMenuMixin, Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'City Cantina Rosum'
+        self.url = 'https://restauracie.sme.sk/restauracia/city-cantina-rosum_8439-ruzinov_2980/denne-menu'
+
+    def parse_menu(self, day):
+        # Remove useless strings in the beginning and end.
+        rows = self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka')[1:-1]
+        items = []
+        for row in rows:
+            item = row.get_text(strip=True).capitalize()
+            if item.startswith('€()'):
+                items.pop()  # Dish is empty. Remove its heading.
+            elif items and not 'Alergény' in items[-1]:
+                # Concatenate items describing same dish to single line.
+                items[-1] = items[-1] + ' ' + item
+            else:
+                items.append(item)  # Start of new dish.
+
+        menu = Menu(self.name)
+        for item in items:
+            menu.add_item(item)
+
+        return menu
+
+
 class OtherRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
