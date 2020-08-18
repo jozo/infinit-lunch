@@ -27,9 +27,5 @@ class Channel:
         self.aio_session = aio_session
 
     async def send(self, messages: Iterable):
-        msgs = iter(messages)
-        await self.aio_session.post(self.hook, json=format_msg(next(msgs)))
-
-        futures = [self.aio_session.post(self.hook, json=format_msg(msg)) for msg in msgs]
-        for future in asyncio.as_completed(futures):
-            await future
+        for msg in messages:
+            await self.aio_session.post(self.hook, json=format_msg(msg))
