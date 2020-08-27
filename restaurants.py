@@ -267,7 +267,17 @@ class AvalonRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant
         self.aio_session = session
         self.content = None
         self.name = 'Avalon'
-        self.url = 'https://restauracie.sme.sk/restauracia/avalon-restauracia_174-ruzinov_2980/denne-menu'
+        self.url = 'https://avalonrestaurant.sk/denne-menu/'
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        today_menu = self.content.select('section.article__content')[day]
+        for p in today_menu.find_all('p'):
+            text = p.text.strip()
+            if text:
+                menu.add_item(text)
+
+        return menu
 
 
 class CasaInkaRestaurant(Restaurant):
