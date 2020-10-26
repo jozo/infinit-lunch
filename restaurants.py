@@ -301,18 +301,13 @@ class BezzinkaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaura
         self.url = 'https://restauracie.sme.sk/restauracia/bezzinka_265-ruzinov_2980/denne-menu'
 
 
-class OlivaRestaurant(Restaurant):
+class OlivaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = 'Oliva'
-        today = date.today()
-        monday = today - timedelta(days=today.weekday())
-        self.url = f'https://www.hotel-premium.sk/files/hotel/downloads/{monday:%y%m%d}_Dobre_obedy.pdf'
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        raise NotImplementedError
+        self.url = 'https://restauracie.sme.sk/restauracia/oliva-restaurant-premium-business-hotel_2717-ruzinov_2980/denne-menu'
 
 
 class CityCantinaRosumRestaurant(StandardRetrieveMenuMixin, Restaurant):
