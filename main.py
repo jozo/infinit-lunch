@@ -65,7 +65,7 @@ def create_poll():
     return client.api_call(
         'chat.command',
         channel=SLACK_CHANNEL,
-        command='/votemeal',
+        command='/vm',
         text='new ' + ' '.join(candidates),
     )
 
