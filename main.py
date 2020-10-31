@@ -9,7 +9,7 @@ from aiohttp import web
 from raven import Client
 
 from restaurants import (FormattedMenus, SafeRestaurant, OtherRestaurant,
-                         BezzinkaRestaurant, AvalonRestaurant, TOTORestaurant,
+                         AvalonRestaurant, TOTORestaurant,
                          CasaInkaRestaurant, OlivaRestaurant, CityCantinaRosumRestaurant)
 from slack import Channel
 from slackclient import SlackClient
@@ -35,7 +35,6 @@ async def retrieve_menus(session):
         SafeRestaurant(TOTORestaurant(session)).retrieve_menu(),
         SafeRestaurant(AvalonRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OlivaRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(BezzinkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CityCantinaRosumRestaurant(session)).retrieve_menu(),
     ]
@@ -51,7 +50,6 @@ async def retrieve_menus(session):
 def create_poll():
     candidates = [
         'avalon',
-        'bezzinka',
         'bigger',
         'bistro',
         'cantina',

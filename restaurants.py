@@ -2,7 +2,7 @@ import abc
 import logging
 import os
 import re
-from datetime import datetime, date, timedelta
+from datetime import datetime
 
 from bs4 import BeautifulSoup, element
 
@@ -290,15 +290,6 @@ class CasaInkaRestaurant(Restaurant):
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         raise NotImplementedError
-
-
-class BezzinkaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
-    def __init__(self, session) -> None:
-        super().__init__()
-        self.aio_session = session
-        self.content = None
-        self.name = 'Bezzinka (4.5€)'
-        self.url = 'https://restauracie.sme.sk/restauracia/bezzinka_265-ruzinov_2980/denne-menu'
 
 
 class OlivaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
