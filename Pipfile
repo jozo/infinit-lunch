@@ -17,7 +17,6 @@ aiohttp = "*"
 "bs4" = "*"
 gunicorn = "*"
 raven = "*"
-slackclient = "*"
 
 [requires]
 python_version = "3.7"
