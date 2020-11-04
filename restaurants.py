@@ -261,6 +261,31 @@ class TOTORestaurant(StandardRetrieveMenuMixin, Restaurant):
         return menu
 
 
+class TOTOCantinaRestaurant(StandardRetrieveMenuMixin, Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = 'TOTO Kantína (3.9€ / 4.6€ s polievkou)'
+        self.url = 'http://totorestaurant.sk/#_denne_menu_kantyna_popis'
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        cantina_div = self.content.find('div', id='_denne_menu_kantyna')
+        date_div = cantina_div.select('div.date')[day]
+
+        for sibling in date_div.next_siblings:
+            if isinstance(sibling, element.NavigableString):
+                continue
+            if sibling.name in ['h2', 'div']:
+                break
+            text = sibling.text.strip()
+            if text:
+                menu.add_item(text)
+
+        return menu
+
+
 class AvalonRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
