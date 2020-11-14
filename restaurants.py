@@ -266,7 +266,7 @@ class TOTOCantinaRestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'TOTO Kantína (3.9€ / 4.6€ s polievkou)'
+        self.name = 'TOTO Kantína (4.6€ / 3.9€ bez polievky)'
         self.url = 'http://totorestaurant.sk/#_denne_menu_kantyna_popis'
 
     def parse_menu(self, day):
