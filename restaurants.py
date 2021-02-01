@@ -243,18 +243,15 @@ class TOTORestaurant(StandardRetrieveMenuMixin, Restaurant):
         self.aio_session = session
         self.content = None
         self.name = 'TOTO (4.9€ / 4.2€ bez polievky / 6.2€ extra menu / 7.4€ business menu)'
-        self.url = 'http://www.totorestaurant.sk/'
+        self.url = 'https://www.totorestaurant.sk/toto-restaurant'
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        date_div = self.content.select('div.date')[day]
+        menu_container = self.content.select('div.container')[0]
+        menu_div = menu_container.select('div.pb-6')[day]
 
-        for sibling in date_div.next_siblings:
-            if isinstance(sibling, element.NavigableString):
-                continue
-            if sibling.name in ['h2', 'div']:
-                break
-            text = sibling.text.strip()
+        for p in menu_div.find_all('p'):
+            text = p.text.strip()
             if text:
                 menu.add_item(text)
 
@@ -267,19 +264,15 @@ class TOTOCantinaRestaurant(StandardRetrieveMenuMixin, Restaurant):
         self.aio_session = session
         self.content = None
         self.name = 'TOTO Kantína (4.6€ / 3.9€ bez polievky)'
-        self.url = 'http://totorestaurant.sk/#_denne_menu_kantyna_popis'
+        self.url = 'https://totorestaurant.sk/toto-kantina'
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        cantina_div = self.content.find('div', id='_denne_menu_kantyna')
-        date_div = cantina_div.select('div.date')[day]
+        menu_container = self.content.select('div.container')[0]
+        menu_div = menu_container.select('div.pb-6')[day]
 
-        for sibling in date_div.next_siblings:
-            if isinstance(sibling, element.NavigableString):
-                continue
-            if sibling.name in ['h2', 'div']:
-                break
-            text = sibling.text.strip()
+        for p in menu_div.find_all('p'):
+            text = p.text.strip()
             if text:
                 menu.add_item(text)
 
@@ -365,6 +358,7 @@ class OtherRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
         menu.add_item(':car: Bistro.sk')
+        menu.add_item(':pizza: TOTO Pizza')
         menu.add_item(':ramen: Mango')
         menu.add_item(':hamburger: Bigger')
         menu.add_item(':male-cook: Chefstreet')
