@@ -1,0 +1,11 @@
+-r requirements.in
+
+pip-tools
+ipython
+aiohttp-devtools
+aiohttp-debugtoolbar
+pytest
+pytest-asyncio
+ipdb
+black
+isort

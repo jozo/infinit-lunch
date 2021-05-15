@@ -8,16 +8,24 @@ import aiohttp
 from aiohttp import web
 from raven import Client
 
-from restaurants import (FormattedMenus, SafeRestaurant, OtherRestaurant,
-                         AvalonRestaurant, TOTORestaurant, TOTOCantinaRestaurant,
-                         CasaInkaRestaurant, OlivaRestaurant, CityCantinaRosumRestaurant)
+from restaurants import (
+    AvalonRestaurant,
+    CasaInkaRestaurant,
+    CityCantinaRosumRestaurant,
+    FormattedMenus,
+    OlivaRestaurant,
+    OtherRestaurant,
+    SafeRestaurant,
+    TOTOCantinaRestaurant,
+    TOTORestaurant,
+)
 from slack import Channel
 
 # SLACK_HOOK = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
-SLACK_HOOK = os.environ.get('SLACK_HOOK', None)
-SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL', None)
-SECRET_KEY = os.environ.get('SECRET_KEY', None)
-DEBUG = bool(os.environ.get('DEBUG', False))
+SLACK_HOOK = os.environ.get("SLACK_HOOK", None)
+SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL", None)
+SECRET_KEY = os.environ.get("SECRET_KEY", None)
+DEBUG = bool(os.environ.get("DEBUG", False))
 
 
 def is_work_day():
@@ -50,18 +58,18 @@ async def index(request):
     if is_work_day():
         async with aiohttp.ClientSession() as session:
             menus = FormattedMenus(await retrieve_menus(session))
-            secret_key = request.match_info.get('secret_key')
+            secret_key = request.match_info.get("secret_key")
             if should_send_to_slack(secret_key):
                 await Channel(SLACK_HOOK, session).send(menus)
             return web.Response(text=str(menus))
-    return web.Response(text='Come on Monday-Friday')
+    return web.Response(text="Come on Monday-Friday")
 
 
-sentry_client = Client()            # credentials is taken from environment variable SENTRY_DSN
+sentry_client = Client()  # credentials is taken from environment variable SENTRY_DSN
 
-app = web.Application(debug=True)
-app.router.add_get('/', index)
-app.router.add_get('/{secret_key}', index)
+app = web.Application()
+app.router.add_get("/", index)
+app.router.add_get("/{secret_key}", index)
 
-if __name__ == '__main__':
-    web.run_app(app, host='localhost', port=5000)
+if __name__ == "__main__":
+    web.run_app(app, host="localhost", port=5000)

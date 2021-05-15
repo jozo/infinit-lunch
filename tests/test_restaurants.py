@@ -1,21 +1,25 @@
 from datetime import datetime
 from unittest.mock import Mock, call
+
 import pytest
 
-from bs4 import BeautifulSoup
-
-from restaurants import DonQuijoteRestaurant, Menu, FormattedMenus, SafeRestaurant, GastrohouseRestaurant, \
-    KantinaRestaurant
+from restaurants import (
+    DonQuijoteRestaurant,
+    FormattedMenus,
+    KantinaRestaurant,
+    Menu,
+    SafeRestaurant,
+)
 from slack import Channel
 
 
 class AsyncMock(Mock):
-
     def __call__(self, *args, **kwargs):
         sup = super(AsyncMock, self)
 
         async def coro():
             return sup.__call__(*args, **kwargs)
+
         return coro()
 
     def __await__(self):
@@ -29,27 +33,33 @@ class TestDonQuijoteRestaurant:
 
     def test_can_find_monday_menu(self):
         menu = self.restaurant.parse_menu(day=0)
-        assert menu.foods == ['250 Letná minestronje', 'Medovo-horčicové kuracie prsia so špargľou a hruškami, bylinková ryža', 'Penne so špenátom a gorgonzolou']
+        assert menu.foods == [
+            "250 Letná minestronje",
+            "Medovo-horčicové kuracie prsia so špargľou a hruškami, bylinková ryža",
+            "Penne so špenátom a gorgonzolou",
+        ]
 
 
 class TestChannel:
     @pytest.mark.asyncio
     async def test_send_provided_messages(self):
         http = AsyncMock()
-        url = 'http://url'
+        url = "http://url"
         ch = Channel(url, http)
-        await ch.send(['first message', 'second message'])
+        await ch.send(["first message", "second message"])
 
         assert http.post.call_count == 2
-        assert http.post.call_args_list == [call(url, json={'text': 'first message'}),
-                                            call(url, json={'text': 'second message'})]
+        assert http.post.call_args_list == [
+            call(url, json={"text": "first message"}),
+            call(url, json={"text": "second message"}),
+        ]
 
 
 class TestMenu:
     def test_string_representation(self):
-        m = Menu('Restaurant A')
-        m.add_item('Food 1', 4.5)
-        m.add_item('Food 2')
+        m = Menu("Restaurant A")
+        m.add_item("Food 1", 4.5)
+        m.add_item("Food 2")
 
         assert str(m) == MENU_1
 
@@ -57,12 +67,12 @@ class TestMenu:
 class TestFormattedMenus:
     def test_will_format_messages(self):
         menus = [
-            Menu('Restaurant A'),
-            Menu('Restaurant B'),
+            Menu("Restaurant A"),
+            Menu("Restaurant B"),
         ]
-        menus[0].add_item('Food 1')
-        menus[0].add_item('Food 2', 4.5)
-        menus[1].add_item('Food 3')
+        menus[0].add_item("Food 1")
+        menus[0].add_item("Food 2", 4.5)
+        menus[1].add_item("Food 3")
         formatted_menus = FormattedMenus(menus, today=datetime(2017, 8, 10))
 
         assert len(formatted_menus) == 2
@@ -76,22 +86,24 @@ class TestSafeRestaurant:
         self.restaurant = SafeRestaurant(self.nested_restaurant)
 
     async def _async_fake_retrieve_menu(self, day):
-        return ['Letná minestrone']
+        return ["Letná minestrone"]
 
     @pytest.mark.asyncio
     async def test_returns_menu_if_everything_ok(self):
         self.nested_restaurant.retrieve_menu = self._async_fake_retrieve_menu
         menu = await self.restaurant.retrieve_menu()
 
-        assert menu == ['Letná minestrone']
+        assert menu == ["Letná minestrone"]
 
     @pytest.mark.asyncio
     async def test_returns_url_for_restaurant_if_exception(self):
-        self.nested_restaurant.retrieve_menu = lambda: exec('raise(Exception())')
+        self.nested_restaurant.retrieve_menu = lambda: exec("raise(Exception())")
         menu = await self.restaurant.retrieve_menu()
 
-        assert menu.foods == ['Problem with scraping. Check menu yourself on '
-                              'https://www.facebook.com/Don-Quijote-1540992416123114/']
+        assert menu.foods == [
+            "Problem with scraping. Check menu yourself on "
+            "https://www.facebook.com/Don-Quijote-1540992416123114/"
+        ]
 
 
 class TestKantina:
@@ -100,9 +112,9 @@ class TestKantina:
         restaurant.content = KANTINA_FB_MESSAGE
         menu = restaurant.parse_menu(4)
         assert menu.foods == [
-            'Hrstková polievka s parkom',
-            '1. Losos na pare, zemiakové pyré, s pomarančovo pórovou omáčkou, listový šalát',
-            '2.Tvarohová žemľovka s ovocím',
+            "Hrstková polievka s parkom",
+            "1. Losos na pare, zemiakové pyré, s pomarančovo pórovou omáčkou, listový šalát",
+            "2.Tvarohová žemľovka s ovocím",
         ]
 
 

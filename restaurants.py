@@ -4,29 +4,29 @@ import os
 import re
 from datetime import datetime
 
-from bs4 import BeautifulSoup, element
+from bs4 import BeautifulSoup
 
-FB_APP_ID = os.environ.get('FB_APP_ID', None)
-FB_APP_SECRET = os.environ.get('FB_APP_SECRET', None)
+FB_APP_ID = os.environ.get("FB_APP_ID", None)
+FB_APP_SECRET = os.environ.get("FB_APP_SECRET", None)
 NO_PRICE = object()
 TODAY = datetime.today().weekday()
 DAY_NAMES = [
-    'pondelok',
-    'utorok',
-    'streda',
-    'štvrtok',
-    'piatok',
-    'sobota',
-    'nedeľa',
+    "pondelok",
+    "utorok",
+    "streda",
+    "štvrtok",
+    "piatok",
+    "sobota",
+    "nedeľa",
 ]
-DAY_NAMES2 = [              # vysklonovane nazvy
-    'pondelok',
-    'utorok',
-    'stredu',
-    'štvrtok',
-    'piatok',
-    'sobotu',
-    'nedeľu',
+DAY_NAMES2 = [  # vysklonovane nazvy
+    "pondelok",
+    "utorok",
+    "stredu",
+    "štvrtok",
+    "piatok",
+    "sobotu",
+    "nedeľu",
 ]
 
 logger = logging.getLogger(__name__)
@@ -43,15 +43,15 @@ class Menu:
         self.prices.append(price)
 
     def __str__(self):
-        items = ['*{}*'.format(self.restaurant_name)]
+        items = ["*{}*".format(self.restaurant_name)]
         items += [
-            '{}{}'.format(food, self.format_price(price))
+            "{}{}".format(food, self.format_price(price))
             for food, price in zip(self.foods, self.prices)
         ]
-        return '\n'.join(items)
+        return "\n".join(items)
 
     def format_price(self, price):
-        return ' ({}€)'.format(price) if price is not NO_PRICE else ''
+        return " ({}€)".format(price) if price is not NO_PRICE else ""
 
 
 class FormattedMenus:
@@ -71,16 +71,16 @@ class FormattedMenus:
     def __str__(self):
         if not self.formatted:
             self.format_menus()
-        return '\n\n'.join(self.formatted)
+        return "\n\n".join(self.formatted)
 
     def format_menus(self):
         self.formatted = [self.add_header(self.menus[0])]
         self.formatted += sorted(map(str, self.menus[1:]))
 
     def add_header(self, menu):
-        return "*Obedy v {} {}*\n\n{}".format(DAY_NAMES2[self.today.weekday()],
-                                              self.today.strftime('%d.%m.%Y'),
-                                              menu)
+        return "*Obedy v {} {}*\n\n{}".format(
+            DAY_NAMES2[self.today.weekday()], self.today.strftime("%d.%m.%Y"), menu
+        )
 
 
 class Restaurant(abc.ABC):
@@ -90,10 +90,10 @@ class Restaurant(abc.ABC):
 
     def __init__(self) -> None:
         super().__init__()
-        self.name = 'Restaurant'
+        self.name = "Restaurant"
 
     def __repr__(self) -> str:
-        return 'Restaurant ({})'.format(self.name)
+        return "Restaurant ({})".format(self.name)
 
     @abc.abstractmethod
     def retrieve_menu(self, day=TODAY) -> Menu:
@@ -114,29 +114,36 @@ class SafeRestaurant(Restaurant):
             return await self.restaurant.retrieve_menu(day)
         except NotImplementedError:
             menu = Menu(self.restaurant.name)
-            menu.add_item('Check menu yourself on {}'.format(self.restaurant.url))
+            menu.add_item("Check menu yourself on {}".format(self.restaurant.url))
             return menu
         except:
             from main import sentry_client
+
             sentry_client.captureException()
-            logger.exception('Error scraping %s', self.restaurant.name)
+            logger.exception("Error scraping %s", self.restaurant.name)
 
             menu = Menu(self.restaurant.name)
-            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.restaurant.url))
+            menu.add_item(
+                "Problem with scraping. Check menu yourself on {}".format(
+                    self.restaurant.url
+                )
+            )
             return menu
 
 
 class StandardRetrieveMenuMixin:
     async def retrieve_menu(self, day=TODAY) -> Menu:
         async with self.aio_session.get(self.url) as resp:
-            self.content = BeautifulSoup(await resp.text(), 'html.parser')
+            self.content = BeautifulSoup(await resp.text(), "html.parser")
         return self.parse_menu(day)
 
 
 class SMERestaurantMixin:
     def parse_menu(self, day):
         menu = Menu(self.name)
-        for item in self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka'):
+        for item in self.content.find(class_="dnesne_menu").find_all(
+            class_="jedlo_polozka"
+        ):
             menu.add_item(item.get_text(strip=True))
         return menu
 
@@ -146,8 +153,8 @@ class DonQuijoteRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restau
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Don Quijote (5.5€)'
-        self.url = 'https://restauracie.sme.sk/restauracia/don-quijote_7436-nove-mesto_2653/denne-menu'
+        self.name = "Don Quijote (5.5€)"
+        self.url = "https://restauracie.sme.sk/restauracia/don-quijote_7436-nove-mesto_2653/denne-menu"
 
 
 class KantinaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
@@ -155,8 +162,8 @@ class KantinaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restauran
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Kantína (4.8€ / 4€ bez polievky)'
-        self.url = 'https://restauracie.sme.sk/restauracia/kantina-vsetko-okolo-jedla_10102-bratislava_2983/denne-menu'
+        self.name = "Kantína (4.8€ / 4€ bez polievky)"
+        self.url = "https://restauracie.sme.sk/restauracia/kantina-vsetko-okolo-jedla_10102-bratislava_2983/denne-menu"
 
 
 class PlzenskaBranaRestaurant(StandardRetrieveMenuMixin, Restaurant):
@@ -164,16 +171,18 @@ class PlzenskaBranaRestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Plzenská brána (5.70)'
-        self.url = 'https://menucka.sk/denne-menu/bratislava/plzenska-brana'
+        self.name = "Plzenská brána (5.70)"
+        self.url = "https://menucka.sk/denne-menu/bratislava/plzenska-brana"
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        container = self.content.find(id='restaurant-actual-menu-id-2024')
+        container = self.content.find(id="restaurant-actual-menu-id-2024")
         if not container:
-            menu.add_item('Problem with scraping. Check menu yourself on {}'.format(self.url))
+            menu.add_item(
+                "Problem with scraping. Check menu yourself on {}".format(self.url)
+            )
             return menu
-        for item in container.find_all(class_='col-xs-10'):
+        for item in container.find_all(class_="col-xs-10"):
             text = item.get_text(strip=True)
             if text:
                 menu.add_item(text)
@@ -185,23 +194,23 @@ class DreamsRestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Dream\'s'
-        self.url = 'http://www.dreams-res.sk/menu/daily_menu_sk.php'
+        self.name = "Dream's"
+        self.url = "http://www.dreams-res.sk/menu/daily_menu_sk.php"
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        foods = self.content.find_all('td', id='jedlo')
-        prices = self.content.find_all('td', id='cena')
+        foods = self.content.find_all("td", id="jedlo")
+        prices = self.content.find_all("td", id="cena")
         for food, price in zip(foods, prices):
             try:
-                food = re.findall(r'(.*)\s+(?:\S)', food.text)[0]
-                price = price.text.strip().replace(',', '.')
+                food = re.findall(r"(.*)\s+(?:\S)", food.text)[0]
+                price = price.text.strip().replace(",", ".")
                 if price:
                     menu.add_item(food, float(price[:-2]))
                 else:
                     menu.add_item(food)
             except IndexError as ex:
-                menu.add_item('Problem with parsing - {} - {}'.format(ex, food.text))
+                menu.add_item("Problem with parsing - {} - {}".format(ex, food.text))
         return menu
 
 
@@ -210,8 +219,8 @@ class MenuUJelena(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Menu u Jeleňa'
-        self.url = 'https://restauracie.sme.sk/restauracia/menu-u-jelena_9787-nove-mesto_2653/denne-menu'
+        self.name = "Menu u Jeleňa"
+        self.url = "https://restauracie.sme.sk/restauracia/menu-u-jelena_9787-nove-mesto_2653/denne-menu"
 
 
 class GastrohouseRestaurant(StandardRetrieveMenuMixin, Restaurant):
@@ -219,20 +228,23 @@ class GastrohouseRestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Gastrohouse a.k.a. vývarovňa Slimák (4.2€)'
-        self.url = 'http://gastrohouse.sk/'
+        self.name = "Gastrohouse a.k.a. vývarovňa Slimák (4.2€)"
+        self.url = "http://gastrohouse.sk/"
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        daily_menu = self.content.select_one('section.denne-menu').find_all('section')
-        today_menu = [section for section in daily_menu
-                      if section.find('h2').text.rstrip().lower().startswith(DAY_NAMES[day])]
+        daily_menu = self.content.select_one("section.denne-menu").find_all("section")
+        today_menu = [
+            section
+            for section in daily_menu
+            if section.find("h2").text.rstrip().lower().startswith(DAY_NAMES[day])
+        ]
         if not today_menu:
-            raise ValueError('Can not find menu')
+            raise ValueError("Can not find menu")
 
-        for li in today_menu[0].find_all('li'):
+        for li in today_menu[0].find_all("li"):
             # price = float(li.find_all('div')[-1].text.strip()[:-2].replace(',', '.'))
-            menu.add_item(li.find('h3').text.strip())
+            menu.add_item(li.find("h3").text.strip())
 
         return menu
 
@@ -242,15 +254,17 @@ class TOTORestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'TOTO (4.9€ / 4.2€ bez polievky / 6.2€ extra menu / 7.4€ business menu)'
-        self.url = 'https://www.totorestaurant.sk/toto-restaurant'
+        self.name = (
+            "TOTO (4.9€ / 4.2€ bez polievky / 6.2€ extra menu / 7.4€ business menu)"
+        )
+        self.url = "https://www.totorestaurant.sk/toto-restaurant"
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        menu_container = self.content.select('div.container')[0]
-        menu_div = menu_container.select('div.pb-6')[day]
+        menu_container = self.content.select("div.container")[0]
+        menu_div = menu_container.select("div.pb-6")[day]
 
-        for p in menu_div.find_all('p'):
+        for p in menu_div.find_all("p"):
             text = p.text.strip()
             if text:
                 menu.add_item(text)
@@ -263,15 +277,15 @@ class TOTOCantinaRestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'TOTO Kantína (4.6€ / 3.9€ bez polievky)'
-        self.url = 'https://totorestaurant.sk/toto-kantina'
+        self.name = "TOTO Kantína (4.6€ / 3.9€ bez polievky)"
+        self.url = "https://totorestaurant.sk/toto-kantina"
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        menu_container = self.content.select('div.container')[0]
-        menu_div = menu_container.select('div.pb-6')[day]
+        menu_container = self.content.select("div.container")[0]
+        menu_div = menu_container.select("div.pb-6")[day]
 
-        for p in menu_div.find_all('p'):
+        for p in menu_div.find_all("p"):
             text = p.text.strip()
             if text:
                 menu.add_item(text)
@@ -284,13 +298,13 @@ class AvalonRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Avalon'
-        self.url = 'https://avalonrestaurant.sk/denne-menu/'
+        self.name = "Avalon"
+        self.url = "https://avalonrestaurant.sk/denne-menu/"
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        today_menu = self.content.select('section.article__content')[day]
-        for p in today_menu.find_all('p'):
+        today_menu = self.content.select("section.article__content")[day]
+        for p in today_menu.find_all("p"):
             text = p.text.strip()
             if text:
                 menu.add_item(text)
@@ -303,8 +317,8 @@ class CasaInkaRestaurant(Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Casa Inka (5.5€ / 6€ špecialita)'
-        self.url = 'http://www.casa-inka.sk/index.php?page=jedalny&kategoria=menu'
+        self.name = "Casa Inka (5.5€ / 6€ špecialita)"
+        self.url = "http://www.casa-inka.sk/index.php?page=jedalny&kategoria=menu"
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         raise NotImplementedError
@@ -315,8 +329,8 @@ class OlivaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant)
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'Oliva'
-        self.url = 'https://restauracie.sme.sk/restauracia/oliva-restaurant-premium-business-hotel_2717-ruzinov_2980/denne-menu'
+        self.name = "Oliva"
+        self.url = "https://restauracie.sme.sk/restauracia/oliva-restaurant-premium-business-hotel_2717-ruzinov_2980/denne-menu"
 
 
 class CityCantinaRosumRestaurant(StandardRetrieveMenuMixin, Restaurant):
@@ -324,20 +338,22 @@ class CityCantinaRosumRestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = 'City Cantina Rosum'
-        self.url = 'https://restauracie.sme.sk/restauracia/city-cantina-rosum_8439-ruzinov_2980/denne-menu'
+        self.name = "City Cantina Rosum"
+        self.url = "https://restauracie.sme.sk/restauracia/city-cantina-rosum_8439-ruzinov_2980/denne-menu"
 
     def parse_menu(self, day):
         # Remove useless strings in the beginning and end.
-        rows = self.content.find(class_='dnesne_menu').find_all(class_='jedlo_polozka')[1:-1]
+        rows = self.content.find(class_="dnesne_menu").find_all(class_="jedlo_polozka")[
+            1:-1
+        ]
         items = []
         for row in rows:
             item = row.get_text(strip=True).capitalize()
-            if item.startswith('€()'):
+            if item.startswith("€()"):
                 items.pop()  # Dish is empty. Remove its heading.
-            elif items and not 'Alergény' in items[-1]:
+            elif items and "Alergény" not in items[-1]:
                 # Concatenate items describing same dish to single line.
-                items[-1] = items[-1] + ' ' + item
+                items[-1] = items[-1] + " " + item
             else:
                 items.append(item)  # Start of new dish.
 
@@ -352,16 +368,16 @@ class OtherRestaurant(Restaurant):
     def __init__(self) -> None:
         super().__init__()
         self.content = None
-        self.name = 'Iné'
+        self.name = "Iné"
         self.url = None
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
-        menu.add_item(':car: Bistro.sk')
-        menu.add_item(':pizza: TOTO Pizza')
-        menu.add_item(':ramen: Mango')
-        menu.add_item(':hamburger: Bigger')
-        menu.add_item(':male-cook: Chefstreet')
-        menu.add_item(':watermelon: Freshmarket')
-        menu.add_item(':middle_finger: Hladovka')
+        menu.add_item(":car: Bistro.sk")
+        menu.add_item(":pizza: TOTO Pizza")
+        menu.add_item(":ramen: Mango")
+        menu.add_item(":hamburger: Bigger")
+        menu.add_item(":male-cook: Chefstreet")
+        menu.add_item(":watermelon: Freshmarket")
+        menu.add_item(":middle_finger: Hladovka")
         return menu

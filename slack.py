@@ -1,20 +1,19 @@
-import asyncio
 from typing import Iterable
 
 
 def format_msg(msg):
-    if msg.startswith('https://'):
+    if msg.startswith("https://"):
         return {
-            'blocks': [
+            "blocks": [
                 {
-                    'type': 'image',
-                    'image_url': msg,
-                    'alt_text': 'Restaurant menu.',
+                    "type": "image",
+                    "image_url": msg,
+                    "alt_text": "Restaurant menu.",
                 }
             ]
         }
     else:
-        return {'text': msg}
+        return {"text": msg}
 
 
 class Channel:

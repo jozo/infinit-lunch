@@ -1,0 +1,5 @@
+aiohttp
+aiohttp-jinja2
+bs4
+gunicorn
+raven
