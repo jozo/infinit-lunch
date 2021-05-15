@@ -16,6 +16,6 @@ Deploy to heroku: just push to branch **master**
 Development
 ===========
 
-Project is based on `asyncio` and `aiohttp`. Minimal version of Python is 3.5.
+Project is based on `asyncio` and `aiohttp`.
 
-Requirements are handled with `pipenv` and 'Pipfile'.
+Requirements are handled with `pip-tools`.
