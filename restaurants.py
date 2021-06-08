@@ -255,7 +255,7 @@ class TOTORestaurant(StandardRetrieveMenuMixin, Restaurant):
         self.aio_session = session
         self.content = None
         self.name = (
-            "TOTO (4.9€ / 4.2€ bez polievky / 6.2€ extra menu / 7.4€ business menu)"
+            "TOTO (5.5€ / 4.9€ bez polievky / 6.6€ extra menu / 7.9€ business menu)"
         )
         self.url = "https://www.totorestaurant.sk/toto-restaurant"
 
