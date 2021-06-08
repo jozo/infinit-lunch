@@ -261,7 +261,7 @@ class TOTORestaurant(StandardRetrieveMenuMixin, Restaurant):
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        menu_container = self.content.select("div.container")[0]
+        menu_container = self.content.select("div.container")[1]
         menu_div = menu_container.select("div.pb-6")[day]
 
         for p in menu_div.find_all("p"):
@@ -277,12 +277,12 @@ class TOTOCantinaRestaurant(StandardRetrieveMenuMixin, Restaurant):
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = "TOTO Kantína (4.6€ / 3.9€ bez polievky)"
+        self.name = "TOTO Kantína (4.9€ / 4.2€ bez polievky)"
         self.url = "https://totorestaurant.sk/toto-kantina"
 
     def parse_menu(self, day):
         menu = Menu(self.name)
-        menu_container = self.content.select("div.container")[0]
+        menu_container = self.content.select("div.container")[4]
         menu_div = menu_container.select("div.pb-6")[day]
 
         for p in menu_div.find_all("p"):
