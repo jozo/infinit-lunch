@@ -333,6 +333,15 @@ class OlivaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant)
         self.url = "https://restauracie.sme.sk/restauracia/oliva-restaurant-premium-business-hotel_2717-ruzinov_2980/denne-menu"
 
 
+class MonastikRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = "Monastik"
+        self.url = "https://restauracie.sme.sk/restauracia/cert-a-kaca_10155-ruzinov_2980/denne-menu"
+
+
 class CityCantinaRosumRestaurant(StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()

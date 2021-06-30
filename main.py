@@ -13,6 +13,7 @@ from restaurants import (
     CasaInkaRestaurant,
     CityCantinaRosumRestaurant,
     FormattedMenus,
+    MonastikRestaurant,
     OlivaRestaurant,
     OtherRestaurant,
     SafeRestaurant,
@@ -43,6 +44,7 @@ async def retrieve_menus(session):
         SafeRestaurant(AvalonRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OlivaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(MonastikRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CityCantinaRosumRestaurant(session)).retrieve_menu(),
     ]
 
