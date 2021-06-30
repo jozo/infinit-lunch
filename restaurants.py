@@ -382,11 +382,8 @@ class OtherRestaurant(Restaurant):
 
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
-        menu.add_item(":car: Bistro.sk")
+        menu.add_item(":car: Donáška")
         menu.add_item(":pizza: TOTO Pizza")
         menu.add_item(":ramen: Mango")
         menu.add_item(":hamburger: Bigger")
-        menu.add_item(":male-cook: Chefstreet")
-        menu.add_item(":watermelon: Freshmarket")
-        menu.add_item(":middle_finger: Hladovka")
         return menu
