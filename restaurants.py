@@ -352,7 +352,7 @@ class MonastikRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaura
         super().__init__()
         self.aio_session = session
         self.content = None
-        self.name = "Monastik"
+        self.name = "Monastik (5.2€)"
         self.url = "https://restauracie.sme.sk/restauracia/cert-a-kaca_10155-ruzinov_2980/denne-menu"
 
 
