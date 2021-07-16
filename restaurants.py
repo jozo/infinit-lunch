@@ -346,14 +346,23 @@ class OlivaRestaurant(Restaurant):
         raise NotImplementedError
 
 
-
-class MonastikRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
+class MonastikRestaurant(StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = "Monastik (5.2€)"
-        self.url = "https://restauracie.sme.sk/restauracia/cert-a-kaca_10155-ruzinov_2980/denne-menu"
+        self.url = "https://www.monastik.sk/denne-menu/"
+
+    def parse_menu(self, day):
+        day_span = self.content.find("span", string=DAY_NAMES[day].upper())
+        menu_div = day_span.parent.parent.parent.parent
+        menu = Menu(self.name)
+        for p in menu_div.find_all("p"):
+            text = p.text.strip()
+            if text:
+                menu.add_item(text)
+        return menu
 
 
 class CityCantinaRosumRestaurant(StandardRetrieveMenuMixin, Restaurant):
