@@ -324,26 +324,15 @@ class CasaInkaRestaurant(Restaurant):
         raise NotImplementedError
 
 
-# TODO: Switch back when they start to publish here again or scrape their site instead.
-# class OlivaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
-#     def __init__(self, session) -> None:
-#         super().__init__()
-#         self.aio_session = session
-#         self.content = None
-#         self.name = "Oliva"
-#         self.url = "https://restauracie.sme.sk/restauracia/oliva-restaurant-premium-business-hotel_2717-ruzinov_2980/denne-menu"
+class OlivaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
+    # Upstream URL: https://www.hotel-premium.sk/sk/dobre-obedy/
 
-
-class OlivaRestaurant(Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
         self.aio_session = session
         self.content = None
         self.name = "Oliva"
-        self.url = "https://www.hotel-premium.sk/sk/dobre-obedy/"
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        raise NotImplementedError
+        self.url = "https://restauracie.sme.sk/restauracia/oliva-restaurant-premium-business-hotel_2717-ruzinov_2980/denne-menu"
 
 
 class MonastikRestaurant(StandardRetrieveMenuMixin, Restaurant):
