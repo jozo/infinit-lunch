@@ -344,7 +344,7 @@ class MonastikRestaurant(StandardRetrieveMenuMixin, Restaurant):
         self.url = "https://www.monastik.sk/denne-menu/"
 
     def parse_menu(self, day):
-        day_span = self.content.find("span", string=DAY_NAMES[day].upper())
+        day_span = self.content.find("span", string=re.compile(fr'\s*{DAY_NAMES[day].upper()}\s*'))
         menu_div = day_span.parent.parent.parent.parent
         menu = Menu(self.name)
         for p in menu_div.find_all("p"):
