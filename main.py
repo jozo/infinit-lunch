@@ -19,6 +19,7 @@ from restaurants import (
     SafeRestaurant,
     TOTOCantinaRestaurant,
     TOTORestaurant,
+    TOTOPizzaAndGrillRestaurant,
 )
 from slack import Channel
 
@@ -46,6 +47,7 @@ async def retrieve_menus(session):
         SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(MonastikRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CityCantinaRosumRestaurant(session)).retrieve_menu(),
+        SafeRestaurant(TOTOPizzaAndGrillRestaurant(session)).retrieve_menu(),
     ]
 
     # Add list of other restaurants first, will be in header.

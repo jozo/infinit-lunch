@@ -293,6 +293,27 @@ class TOTOCantinaRestaurant(StandardRetrieveMenuMixin, Restaurant):
         return menu
 
 
+class TOTOPizzaAndGrillRestaurant(StandardRetrieveMenuMixin, Restaurant):
+    def __init__(self, session) -> None:
+        super().__init__()
+        self.aio_session = session
+        self.content = None
+        self.name = "TOTO Pizza & Grill (6.5€ / 7.5€ extra menu)"
+        self.url = "https://totorestaurant.sk/toto-pizza"
+
+    def parse_menu(self, day):
+        menu = Menu(self.name)
+        menu_container = self.content.select("div.container")[1]
+        menu_div = menu_container.select("div.pb-6")[day]
+
+        for p in menu_div.find_all("p"):
+            text = p.text.strip()
+            if text:
+                menu.add_item(text)
+
+        return menu
+
+
 class AvalonRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):
     def __init__(self, session) -> None:
         super().__init__()
@@ -395,7 +416,6 @@ class OtherRestaurant(Restaurant):
     async def retrieve_menu(self, day=TODAY) -> Menu:
         menu = Menu(self.name)
         menu.add_item(":car: Donáška")
-        menu.add_item(":pizza: TOTO Pizza")
         menu.add_item(":ramen: Mango")
         menu.add_item(":hamburger: Bigger")
         return menu
