@@ -255,7 +255,7 @@ class TOTORestaurant(StandardRetrieveMenuMixin, Restaurant):
         self.aio_session = session
         self.content = None
         self.name = (
-            "TOTO (5.5€ / 4.9€ bez polievky / 6.6€ extra menu / 7.9€ business menu)"
+            "TOTO (6.9€ / 7.5€ extra menu / 9.5€ business menu)"
         )
         self.url = "https://www.totorestaurant.sk/toto-restaurant"
 
@@ -331,18 +331,6 @@ class AvalonRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant
                 menu.add_item(text)
 
         return menu
-
-
-class CasaInkaRestaurant(Restaurant):
-    def __init__(self, session) -> None:
-        super().__init__()
-        self.aio_session = session
-        self.content = None
-        self.name = "Casa Inka (5.5€ / 6€ špecialita)"
-        self.url = "http://www.casa-inka.sk/index.php?page=jedalny&kategoria=menu"
-
-    async def retrieve_menu(self, day=TODAY) -> Menu:
-        raise NotImplementedError
 
 
 class OlivaRestaurant(SMERestaurantMixin, StandardRetrieveMenuMixin, Restaurant):

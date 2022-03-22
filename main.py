@@ -10,7 +10,6 @@ from raven import Client
 
 from restaurants import (
     AvalonRestaurant,
-    CasaInkaRestaurant,
     CityCantinaRosumRestaurant,
     FormattedMenus,
     MonastikRestaurant,
@@ -44,10 +43,10 @@ async def retrieve_menus(session):
         SafeRestaurant(TOTOCantinaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(AvalonRestaurant(session)).retrieve_menu(),
         SafeRestaurant(OlivaRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(CasaInkaRestaurant(session)).retrieve_menu(),
         SafeRestaurant(MonastikRestaurant(session)).retrieve_menu(),
         SafeRestaurant(CityCantinaRosumRestaurant(session)).retrieve_menu(),
-        SafeRestaurant(TOTOPizzaAndGrillRestaurant(session)).retrieve_menu(),
+        # Temporarily closed
+        # SafeRestaurant(TOTOPizzaAndGrillRestaurant(session)).retrieve_menu(),
     ]
 
     # Add list of other restaurants first, will be in header.
