@@ -19,3 +19,4 @@ Development
 Project is based on `asyncio` and `aiohttp`.
 
 Requirements are handled with `pip-tools`.
+
